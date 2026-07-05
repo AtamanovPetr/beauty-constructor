@@ -5,4 +5,8 @@ export interface FormData {
   logo: string;
   inst: string;
   phone: string;
+  style: string;
+  reviews: string;
+  address: string;
+  gallery: string;
 }

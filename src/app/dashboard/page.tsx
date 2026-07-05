@@ -21,33 +21,25 @@ export default function DashboardPage() {
     fetch(`/api/sites?userId=${userId}`)
       .then((res) => res.json())
       .then((data) => {
-        // Проверяем, что пришёл массив, иначе ставим пустой массив
-        if (Array.isArray(data)) {
-          setSites(data);
-        } else {
-          console.error("API returned non-array:", data);
-          setSites([]);
-        }
+        if (Array.isArray(data)) setSites(data);
+        else setSites([]);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         setSites([]);
         setLoading(false);
       });
   }, [userId]);
 
   const handlePublish = async (siteId: string) => {
-    const res = await fetch("/api/sites/publish", {
+    await fetch("/api/sites/publish", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ siteId, userId }),
     });
-    if (res.ok) {
-      setSites((prev) =>
-        prev.map((s) => (s.id === siteId ? { ...s, published: true } : s)),
-      );
-    }
+    setSites((prev) =>
+      prev.map((s) => (s.id === siteId ? { ...s, published: true } : s)),
+    );
   };
 
   const handleDelete = async (siteId: string) => {
@@ -70,17 +62,14 @@ export default function DashboardPage() {
     );
 
   return (
-    <div className="container">
+    <main className="container">
       <h1 className="title">Мои сайты</h1>
       <Link
         href="/"
-        style={{
-          display: "inline-block",
-          marginBottom: 30,
-          textDecoration: "none",
-        }}
+        className="submit-btn"
+        style={{ marginBottom: 30, display: "inline-block" }}
       >
-        <span className="submit-btn">+ Создать новый</span>
+        + Создать новый
       </Link>
       {sites.length === 0 ? (
         <p>У вас пока нет сайтов.</p>
@@ -108,7 +97,7 @@ export default function DashboardPage() {
                       }
                       className="btn btn-copy"
                     >
-                      Копировать ссылку
+                      Копировать
                     </button>
                   </>
                 ) : (
@@ -135,6 +124,6 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

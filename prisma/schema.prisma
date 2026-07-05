@@ -1,18 +1,18 @@
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Site {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   title     String
   html      String
   userId    String
-  slug      String  @unique
-  published Boolean @default(false)
+  slug      String   @unique
+  published Boolean  @default(false)
   createdAt DateTime @default(now())
+  style     String   @default("teal")   // ← добавь, если отсутствует
 }

@@ -99,6 +99,9 @@ export default function DashboardPage() {
                     >
                       Копировать
                     </button>
+                    <Link href={`/edit/${site.id}`} className="btn btn-edit">
+                      Редактировать
+                    </Link>
                   </>
                 ) : (
                   <>

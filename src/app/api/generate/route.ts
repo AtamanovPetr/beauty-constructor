@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Пресеты стилей (оставь свои, это пример)
 const STYLES: Record<string, string> = {
   rose: `
     .beauty-site { background: linear-gradient(135deg, #fdf2f4, #f9eef2); min-height: 100vh; }
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     const styleKey = payload.style || "rose";
     const customStyles = STYLES[styleKey] || STYLES.rose;
 
+    // Парсинг услуг, отзывов, галереи
     const servicesRaw = (payload.skills || "")
       .split("\n")
       .filter((line: string) => line.trim());
@@ -58,13 +60,13 @@ export async function POST(request: Request) {
       return { author: parts[0] || "Гость", text: parts[1] || "" };
     });
 
-    const cleanPhone = payload.phone ? payload.phone.replace(/\D/g, "") : "";
     const galleryImages = (payload.gallery || "")
       .split("|")
-      .map((url: string) => url.trim())
+      .map((u: string) => u.trim())
       .filter(Boolean);
+    const cleanPhone = payload.phone ? payload.phone.replace(/\D/g, "") : "";
 
-    // Генерируем HTML только с содержимым, обёрнутым в .beauty-site
+    // Генерация HTML (полный шаблон, как мы делали раньше)
     const html = `
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -255,6 +257,14 @@ export async function POST(request: Request) {
       await prisma.site.create({
         data: {
           title: payload.name,
+          phrase: payload.phrase || "",
+          skills: payload.skills || "",
+          logo: payload.logo || "",
+          inst: payload.inst || "",
+          phone: payload.phone || "",
+          reviews: payload.reviews || "",
+          address: payload.address || "",
+          gallery: payload.gallery || "",
           html: html,
           userId: payload.userId,
           slug: slug,
@@ -268,6 +278,14 @@ export async function POST(request: Request) {
         await prisma.site.create({
           data: {
             title: payload.name,
+            phrase: payload.phrase || "",
+            skills: payload.skills || "",
+            logo: payload.logo || "",
+            inst: payload.inst || "",
+            phone: payload.phone || "",
+            reviews: payload.reviews || "",
+            address: payload.address || "",
+            gallery: payload.gallery || "",
             html: html,
             userId: payload.userId,
             slug: slug,

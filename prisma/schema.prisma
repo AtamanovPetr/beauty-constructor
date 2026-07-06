@@ -9,10 +9,18 @@ datasource db {
 model Site {
   id        String   @id @default(cuid())
   title     String
+  phrase    String   @default("")
+  skills    String   @default("")
+  logo      String   @default("")
+  inst      String   @default("")
+  phone     String   @default("")
+  reviews   String   @default("")
+  address   String   @default("")
+  gallery   String   @default("")
   html      String
   userId    String
   slug      String   @unique
   published Boolean  @default(false)
+  style     String   @default("rose")
   createdAt DateTime @default(now())
-  style     String   @default("teal")   // ← добавь, если отсутствует
 }

@@ -9,6 +9,7 @@ export default function HomePage() {
   const { userId } = useAuth();
   const [visible, setVisible] = useState(false);
   const [html, setHtml] = useState<string>("");
+  const [success, setSuccess] = useState(false);
   const authRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -18,6 +19,11 @@ export default function HomePage() {
 
   const scrollTo = (ref: React.RefObject<HTMLDivElement | null>) => {
     ref.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleGenerate = (html: string) => {
+    setHtml(html);
+    setSuccess(true);
   };
 
   return (
@@ -30,7 +36,7 @@ export default function HomePage() {
         position: "relative",
       }}
     >
-      {/* Плавающие частицы */}
+      {/* Плавающие частицы (если есть в стилях, просто оставляем) */}
       <div className="particles">
         <div className="particle" />
         <div className="particle" />
@@ -52,26 +58,17 @@ export default function HomePage() {
           padding: "0 20px",
           position: "relative",
           zIndex: 1,
-          animationDelay: "0.2s",
         }}
       >
         <h1
           className="title"
-          style={{
-            fontSize: "3rem",
-            marginBottom: "20px",
-            animationDelay: "0.3s",
-          }}
+          style={{ fontSize: "3rem", marginBottom: "20px" }}
         >
           Создай сайт-визитку для своего салона
         </h1>
         <p
           className="subtitle"
-          style={{
-            maxWidth: "600px",
-            marginBottom: "40px",
-            animationDelay: "0.4s",
-          }}
+          style={{ maxWidth: "600px", marginBottom: "40px" }}
         >
           Красивый лендинг с услугами, ценами, фото и онлайн-записью — за 2 дня.
           Управляйте им в любое время.
@@ -81,11 +78,7 @@ export default function HomePage() {
           <button
             onClick={() => scrollTo(formRef)}
             className="submit-btn pulse-animation"
-            style={{
-              fontSize: "1.2rem",
-              padding: "16px 40px",
-              animationDelay: "0.5s",
-            }}
+            style={{ fontSize: "1.2rem", padding: "16px 40px" }}
           >
             Перейти к форме
           </button>
@@ -93,11 +86,7 @@ export default function HomePage() {
           <button
             onClick={() => scrollTo(authRef)}
             className="submit-btn pulse-animation"
-            style={{
-              fontSize: "1.2rem",
-              padding: "16px 40px",
-              animationDelay: "0.5s",
-            }}
+            style={{ fontSize: "1.2rem", padding: "16px 40px" }}
           >
             Начать создавать
           </button>
@@ -138,29 +127,16 @@ export default function HomePage() {
             textAlign: "center",
             padding: "0 20px",
             zIndex: 1,
-            animationDelay: "0.2s",
           }}
         >
-          <h2 className="section-title" style={{ animationDelay: "0.3s" }}>
-            Войдите, чтобы создать сайт
-          </h2>
-          <p
-            style={{
-              color: "#8b6e7a",
-              marginBottom: "30px",
-              animationDelay: "0.4s",
-            }}
-          >
+          <h2 className="section-title">Войдите, чтобы создать сайт</h2>
+          <p style={{ color: "#8b6e7a", marginBottom: "30px" }}>
             Используйте аккаунт Google для входа
           </p>
           <button
             onClick={loginWithGoogle}
             className="submit-btn pulse-animation"
-            style={{
-              fontSize: "1.2rem",
-              padding: "16px 40px",
-              animationDelay: "0.5s",
-            }}
+            style={{ fontSize: "1.2rem", padding: "16px 40px" }}
           >
             Войти через Google
           </button>
@@ -181,7 +157,6 @@ export default function HomePage() {
             margin: "0 auto",
             width: "100%",
             zIndex: 1,
-            animationDelay: "0.2s",
           }}
         >
           <div
@@ -190,7 +165,6 @@ export default function HomePage() {
               justifyContent: "flex-end",
               gap: "16px",
               marginBottom: "20px",
-              animationDelay: "0.3s",
             }}
           >
             <Link
@@ -214,34 +188,72 @@ export default function HomePage() {
               Выйти
             </button>
           </div>
-          <h1 className="title" style={{ animationDelay: "0.4s" }}>
-            Создай сайт-визитку
-          </h1>
-          <SiteForm userId={userId} onGenerate={setHtml} />
+          <h1 className="title">Создай сайт-визитку</h1>
+          <SiteForm userId={userId} onGenerate={handleGenerate} />
+
+          {/* Уведомление об успешном создании */}
+          {success && (
+            <div
+              className="fade-in-up visible"
+              style={{
+                marginTop: "40px",
+                background: "rgba(255, 250, 252, 0.9)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(184, 149, 162, 0.4)",
+                borderRadius: "24px",
+                padding: "32px 24px",
+                textAlign: "center",
+                boxShadow: "0 12px 32px rgba(160, 120, 135, 0.15)",
+              }}
+            >
+              <div style={{ fontSize: "2rem", marginBottom: "12px" }}>✅</div>
+              <h2
+                style={{
+                  color: "#5c4b56",
+                  marginBottom: "8px",
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                }}
+              >
+                Сайт создан!
+              </h2>
+              <p style={{ color: "#8b6e7a", marginBottom: "24px" }}>
+                Ваш сайт-визитка готов. Вы можете опубликовать его и поделиться
+                ссылкой.
+              </p>
+              <Link
+                href="/dashboard"
+                className="submit-btn"
+                style={{
+                  padding: "14px 32px",
+                  fontSize: "1rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                Перейти в Мои сайты →
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Предпросмотр на всю ширину */}
-      {html && (
-        <div
-          style={{ padding: "20px 0", background: "inherit", zIndex: 1 }}
-          className="fade-in-up visible"
-        >
-          <h2 className="section-title" style={{ textAlign: "center" }}>
-            Результат
-          </h2>
-          <iframe
-            srcDoc={html}
-            style={{
-              width: "100%",
-              height: "85vh",
-              border: "1px solid rgba(184, 149, 162, 0.3)",
-              display: "block",
-            }}
-            title="Предпросмотр сайта"
-          />
-        </div>
-      )}
+      <style jsx global>{`
+        @keyframes bounce {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(10px);
+          }
+        }
+        html,
+        body {
+          overflow-x: hidden;
+        }
+      `}</style>
     </main>
   );
 }

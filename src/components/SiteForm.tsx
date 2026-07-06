@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import type { FormData, ServiceItem } from "@/app/types";
+import toast from "react-hot-toast";
 
 interface Props {
   userId: string;
-  onGenerate: (html: string) => void;
+  onGenerate: (html: string, slug: string) => void; // изменён пропс
 }
 
 const STORAGE_KEY = "siteFormDraft";
@@ -93,7 +94,7 @@ function loadDraft(): FormData {
 
 export default function SiteForm({ userId, onGenerate }: Props) {
   const [form, setForm] = useState<FormData>(loadDraft);
-  const [html, setHtml] = useState<string>("");
+  const [saving, setSaving] = useState(false);
 
   // Автосохранение в localStorage
   useEffect(() => {
@@ -139,17 +140,29 @@ export default function SiteForm({ userId, onGenerate }: Props) {
     };
     delete payload.services;
 
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.error) {
+        toast.error(data.error);
+        setSaving(false);
+        return;
+      }
 
-    // Очищаем черновик и показываем результат
-    localStorage.removeItem(STORAGE_KEY);
-    setForm(DEFAULT_FORM);
-    onGenerate(data.html);
+      localStorage.removeItem(STORAGE_KEY);
+      setForm(DEFAULT_FORM);
+      toast.success("Сайт создан!");
+      onGenerate(data.html, data.slug);
+    } catch (err) {
+      toast.error("Ошибка сети. Попробуйте позже.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -257,6 +270,7 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           {form.services.map((service, idx) => (
             <div
               key={idx}
+              className="slide-down"
               style={{
                 background: "rgba(255,255,255,0.5)",
                 borderRadius: "12px",
@@ -508,8 +522,20 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           </div>
         </fieldset>
 
-        <button type="submit" className="submit-btn">
-          Создать сайт
+        <button type="submit" className="submit-btn" disabled={saving}>
+          {saving ? (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span className="spinner" /> Сохраняем...
+            </span>
+          ) : (
+            "Создать сайт"
+          )}
         </button>
       </form>
     </div>

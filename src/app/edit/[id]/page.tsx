@@ -4,7 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import type { FormData, ServiceItem } from "@/app/types";
-
+import toast, { Toaster } from "react-hot-toast";
 // ─── Вспомогательные функции ───────────────────────────────────────
 function servicesToString(services: ServiceItem[]): string {
   return services
@@ -152,9 +152,10 @@ export default function EditPage() {
     });
     if (res.ok) {
       localStorage.removeItem(STORAGE_KEY);
+      toast.success("Изменения сохранены!");
       router.push("/dashboard");
     } else {
-      alert("Ошибка сохранения");
+      toast.error("Ошибка сохранения");
     }
     setSaving(false);
   };
@@ -279,6 +280,7 @@ export default function EditPage() {
           {form.services.map((service, idx) => (
             <div
               key={idx}
+              className="slide-down"
               style={{
                 background: "rgba(255,255,255,0.5)",
                 borderRadius: "12px",

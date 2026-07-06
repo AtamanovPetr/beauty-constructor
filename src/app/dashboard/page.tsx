@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface Site {
   id: string;
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const { userId } = useAuth();
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -43,9 +45,9 @@ export default function DashboardPage() {
   };
 
   const handleDelete = async (siteId: string) => {
-    if (!confirm("Удалить сайт?")) return;
     await fetch(`/api/sites/${siteId}?userId=${userId}`, { method: "DELETE" });
     setSites((prev) => prev.filter((s) => s.id !== siteId));
+    setDeleteTarget(null);
   };
 
   if (!userId)
@@ -64,13 +66,22 @@ export default function DashboardPage() {
   return (
     <main className="container">
       <h1 className="title">Мои сайты</h1>
-      <Link
-        href="/"
-        className="submit-btn"
-        style={{ marginBottom: 30, display: "inline-block" }}
-      >
-        + Создать новый
-      </Link>
+      <div style={{ display: "flex", gap: "16px", marginBottom: "30px" }}>
+        <Link
+          href="/"
+          className="submit-btn"
+          style={{ padding: "8px 20px", fontSize: "0.9rem" }}
+        >
+          ← На главную
+        </Link>
+        <Link
+          href="/"
+          className="submit-btn"
+          style={{ padding: "8px 20px", fontSize: "0.9rem" }}
+        >
+          + Создать новый
+        </Link>
+      </div>
       {sites.length === 0 ? (
         <p>У вас пока нет сайтов.</p>
       ) : (
@@ -117,7 +128,7 @@ export default function DashboardPage() {
                   </>
                 )}
                 <button
-                  onClick={() => handleDelete(site.id)}
+                  onClick={() => setDeleteTarget(site.id)}
                   className="btn btn-delete"
                 >
                   Удалить
@@ -126,6 +137,14 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          message="Удалить сайт безвозвратно?"
+          onConfirm={() => handleDelete(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </main>
   );

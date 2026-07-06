@@ -4,11 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { loginWithGoogle, logout } from "@/firebase";
 import Link from "next/link";
 import SiteForm from "@/components/SiteForm";
+import toast from "react-hot-toast";
 
 export default function HomePage() {
   const { userId } = useAuth();
   const [visible, setVisible] = useState(false);
   const [html, setHtml] = useState<string>("");
+  const [lastSlug, setLastSlug] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const authRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -21,9 +23,16 @@ export default function HomePage() {
     ref.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleGenerate = (html: string) => {
-    setHtml(html);
+  const handleGenerate = (newHtml: string, slug: string) => {
+    setHtml(newHtml);
+    setLastSlug(slug);
     setSuccess(true);
+  };
+
+  const copyLink = () => {
+    const url = `${window.location.origin}/s/${lastSlug}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Ссылка скопирована! Отправьте её клиенту.");
   };
 
   return (
@@ -36,7 +45,7 @@ export default function HomePage() {
         position: "relative",
       }}
     >
-      {/* Плавающие частицы (если есть в стилях, просто оставляем) */}
+      {/* Плавающие частицы */}
       <div className="particles">
         <div className="particle" />
         <div className="particle" />
@@ -113,7 +122,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Секция 2: Авторизация (только если не вошёл) */}
+      {/* Секция 2: Авторизация */}
       {!userId && (
         <div
           ref={authRef}
@@ -143,7 +152,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Секция 3: Форма (только если вошёл) */}
+      {/* Секция 3: Форма */}
       {userId && (
         <div
           ref={formRef}
@@ -218,22 +227,55 @@ export default function HomePage() {
                 Сайт создан!
               </h2>
               <p style={{ color: "#8b6e7a", marginBottom: "24px" }}>
-                Ваш сайт-визитка готов. Вы можете опубликовать его и поделиться
-                ссылкой.
+                Ваш сайт-визитка готов. Чтобы он стал доступен по ссылке,
+                опубликуйте его в Моих сайтах.
               </p>
-              <Link
-                href="/dashboard"
-                className="submit-btn"
+              <div
                 style={{
-                  padding: "14px 32px",
-                  fontSize: "1rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                  flexWrap: "wrap",
                 }}
               >
-                Перейти в Мои сайты →
-              </Link>
+                <Link
+                  href="/dashboard"
+                  className="submit-btn"
+                  style={{
+                    padding: "14px 32px",
+                    fontSize: "1rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  Перейти в Мои сайты →
+                </Link>
+                {lastSlug && (
+                  <button
+                    onClick={copyLink}
+                    className="submit-btn"
+                    style={{
+                      padding: "14px 32px",
+                      fontSize: "1rem",
+                      background: "transparent",
+                      border: "1px solid #b07a8c",
+                      color: "#b07a8c",
+                    }}
+                  >
+                    📋 Скопировать ссылку
+                  </button>
+                )}
+              </div>
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#a08a94",
+                  marginTop: "12px",
+                }}
+              >
+                Ссылка станет активной после публикации сайта в дашборде.
+              </p>
             </div>
           )}
         </div>

@@ -17,4 +17,6 @@ export interface FormData {
   reviews: string;
   address: string;
   gallery: string;
+  metaTitle?: string;
+  metaDescription?: string;
 }

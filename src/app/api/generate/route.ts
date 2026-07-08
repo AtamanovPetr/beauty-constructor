@@ -45,6 +45,25 @@ function generateSlug(name: string): string {
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
+    // Проверяем тариф и лимит сайтов
+    const user = await prisma.user.findUnique({
+      where: { firebaseUid: payload.userId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const siteCount = await prisma.site.count({
+      where: { userId: payload.userId },
+    });
+
+    if (siteCount >= user.sitesLimit) {
+      return NextResponse.json(
+        { error: "Достигнут лимит сайтов. Обновите тариф до PRO." },
+        { status: 403 },
+      );
+    }
     const styleKey = payload.style || "rose";
     const customStyles = STYLES[styleKey] || STYLES.rose;
 

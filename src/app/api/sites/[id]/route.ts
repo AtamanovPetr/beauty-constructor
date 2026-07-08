@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 // ===== Пресеты стилей (скопированы из generate/route.ts) =====
 const STYLES: Record<string, string> = {
   rose: `
@@ -107,6 +114,8 @@ function generateHTMLFromForm(form: any): string {
       .contact-btn { padding: 12px 20px; }
     }
   </style>
+  ${form.metaTitle ? `<title>${escapeHtml(form.metaTitle)}</title>` : `<title>${escapeHtml(form.title || "")}</title>`}
+${form.metaDescription ? `<meta name="description" content="${escapeHtml(form.metaDescription)}">` : ""}
   <div class="beauty-site">
     <div class="container">
       <div class="hero fade-in-up">
@@ -271,6 +280,8 @@ export async function GET(
       createdAt: true,
       style: true,
       userId: true,
+      metaTitle: true,
+      metaDescription: true,
     },
   });
 
@@ -302,6 +313,8 @@ export async function PUT(
     address,
     gallery,
     style,
+    metaTitle,
+    metaDescription,
   } = body;
 
   if (!userId || !title) {
@@ -330,6 +343,8 @@ export async function PUT(
     address,
     gallery,
     style,
+    metaTitle,
+    metaDescription,
   });
 
   const updated = await prisma.site.update({
@@ -346,6 +361,8 @@ export async function PUT(
       gallery,
       style,
       html,
+      metaTitle: body.metaTitle ?? existing.metaTitle,
+      metaDescription: body.metaDescription ?? existing.metaDescription,
     },
   });
 

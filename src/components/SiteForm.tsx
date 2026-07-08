@@ -81,6 +81,8 @@ const DEFAULT_FORM: FormData = {
     "https://i.ibb.co/xt17YjrG/photo2.webp|" +
     "https://i.ibb.co/JWg4Dm1X/photo3.webp|" +
     "https://i.ibb.co/chQGX64X/photo4.webp",
+  metaTitle: "",
+  metaDescription: "",
 };
 
 function loadDraft(): FormData {
@@ -187,24 +189,27 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           </div>
           <div className="form-group">
             <label>Логотип</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const fd = new FormData();
-                fd.append("files", file);
-                const res = await fetch("/api/upload", {
-                  method: "POST",
-                  body: fd,
-                });
-                const data = await res.json();
-                if (data.urls?.length) {
-                  setForm((prev) => ({ ...prev, logo: data.urls[0] }));
-                }
-              }}
-            />
+            <label className="file-upload-label">
+              <span>📁</span> Загрузить логотип
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const fd = new FormData();
+                  fd.append("files", file);
+                  const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: fd,
+                  });
+                  const data = await res.json();
+                  if (data.urls?.length) {
+                    setForm((prev) => ({ ...prev, logo: data.urls[0] }));
+                  }
+                }}
+              />
+            </label>
             {form.logo && (
               <div
                 style={{
@@ -324,35 +329,67 @@ export default function SiteForm({ userId, onGenerate }: Props) {
                 <div
                   style={{ display: "flex", gap: "10px", alignItems: "center" }}
                 >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const fd = new FormData();
-                      fd.append("files", file);
-                      const res = await fetch("/api/upload", {
-                        method: "POST",
-                        body: fd,
-                      });
-                      const data = await res.json();
-                      if (data.urls?.length) {
-                        updateService(idx, "image", data.urls[0]);
-                      }
-                    }}
-                  />
-                  {service.image && (
-                    <img
-                      src={service.image}
-                      alt="preview"
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        objectFit: "cover",
-                        borderRadius: "6px",
+                  <label
+                    className="file-upload-label"
+                    style={{ padding: "6px 14px", fontSize: "0.85rem" }}
+                  >
+                    <span>🖼️</span> Фото
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const fd = new FormData();
+                        fd.append("files", file);
+                        const res = await fetch("/api/upload", {
+                          method: "POST",
+                          body: fd,
+                        });
+                        const data = await res.json();
+                        if (data.urls?.length) {
+                          updateService(idx, "image", data.urls[0]);
+                        }
                       }}
                     />
+                  </label>
+                  {service.image && (
+                    <div
+                      style={{ position: "relative", display: "inline-block" }}
+                    >
+                      <img
+                        src={service.image}
+                        alt="preview"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "cover",
+                          borderRadius: "6px",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateService(idx, "image", "")}
+                        style={{
+                          position: "absolute",
+                          top: "-8px",
+                          right: "-8px",
+                          background: "#ef4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -386,32 +423,35 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           <legend className="section-title">Наши работы</legend>
           <div className="form-group">
             <label>Загрузить фото</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={async (e) => {
-                const files = e.target.files;
-                if (!files?.length) return;
-                const fd = new FormData();
-                for (let i = 0; i < files.length; i++)
-                  fd.append("files", files[i]);
-                const res = await fetch("/api/upload", {
-                  method: "POST",
-                  body: fd,
-                });
-                const data = await res.json();
-                if (data.urls) {
-                  const newUrls = data.urls.join("|");
-                  setForm((prev) => ({
-                    ...prev,
-                    gallery: prev.gallery
-                      ? prev.gallery + "|" + newUrls
-                      : newUrls,
-                  }));
-                }
-              }}
-            />
+            <label className="file-upload-label">
+              <span>🖼️</span> Добавить фото
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={async (e) => {
+                  const files = e.target.files;
+                  if (!files?.length) return;
+                  const fd = new FormData();
+                  for (let i = 0; i < files.length; i++)
+                    fd.append("files", files[i]);
+                  const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: fd,
+                  });
+                  const data = await res.json();
+                  if (data.urls) {
+                    const newUrls = data.urls.join("|");
+                    setForm((prev) => ({
+                      ...prev,
+                      gallery: prev.gallery
+                        ? prev.gallery + "|" + newUrls
+                        : newUrls,
+                    }));
+                  }
+                }}
+              />
+            </label>
           </div>
           {form.gallery && (
             <div
@@ -499,6 +539,29 @@ export default function SiteForm({ userId, onGenerate }: Props) {
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
               placeholder="г. Москва, ул. Тверская, 1"
+            />
+          </div>
+        </fieldset>
+        {/* SEO */}
+        <fieldset className="form-section">
+          <legend className="section-title">SEO (для поисковиков)</legend>
+          <div className="form-group">
+            <label>Заголовок страницы (Title)</label>
+            <input
+              value={form.metaTitle || ""}
+              onChange={(e) => setForm({ ...form, metaTitle: e.target.value })}
+              placeholder="Салон красоты Мария — стрижки и окрашивание"
+            />
+          </div>
+          <div className="form-group">
+            <label>Описание (Description)</label>
+            <textarea
+              rows={2}
+              value={form.metaDescription || ""}
+              onChange={(e) =>
+                setForm({ ...form, metaDescription: e.target.value })
+              }
+              placeholder="Профессиональные стрижки, окрашивание Airtouch, маникюр. Удобная онлайн-запись."
             />
           </div>
         </fieldset>

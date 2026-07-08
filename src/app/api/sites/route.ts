@@ -18,6 +18,7 @@ export async function GET(request: Request) {
         slug: true,
         published: true,
         createdAt: true,
+        domain: true,
       },
       orderBy: { createdAt: "desc" },
     });

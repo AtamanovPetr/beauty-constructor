@@ -89,6 +89,8 @@ export default function EditPage() {
           reviews: site.reviews || "",
           address: site.address || "",
           gallery: site.gallery || "",
+          metaTitle: site.metaTitle || "",
+          metaDescription: site.metaDescription || "",
         };
         setForm(freshForm);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(freshForm));
@@ -197,24 +199,27 @@ export default function EditPage() {
           </div>
           <div className="form-group">
             <label>Логотип</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const fd = new FormData();
-                fd.append("files", file);
-                const res = await fetch("/api/upload", {
-                  method: "POST",
-                  body: fd,
-                });
-                const data = await res.json();
-                if (data.urls?.length) {
-                  setForm((prev) => ({ ...prev, logo: data.urls[0] }));
-                }
-              }}
-            />
+            <label className="file-upload-label">
+              <span>📁</span> Загрузить логотип
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const fd = new FormData();
+                  fd.append("files", file);
+                  const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: fd,
+                  });
+                  const data = await res.json();
+                  if (data.urls?.length) {
+                    setForm((prev) => ({ ...prev, logo: data.urls[0] }));
+                  }
+                }}
+              />
+            </label>
             {form.logo && (
               <div
                 style={{
@@ -334,35 +339,67 @@ export default function EditPage() {
                 <div
                   style={{ display: "flex", gap: "10px", alignItems: "center" }}
                 >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const fd = new FormData();
-                      fd.append("files", file);
-                      const res = await fetch("/api/upload", {
-                        method: "POST",
-                        body: fd,
-                      });
-                      const data = await res.json();
-                      if (data.urls?.length) {
-                        updateService(idx, "image", data.urls[0]);
-                      }
-                    }}
-                  />
-                  {service.image && (
-                    <img
-                      src={service.image}
-                      alt="preview"
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        objectFit: "cover",
-                        borderRadius: "6px",
+                  <label
+                    className="file-upload-label"
+                    style={{ padding: "6px 14px", fontSize: "0.85rem" }}
+                  >
+                    <span>🖼️</span> Фото
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const fd = new FormData();
+                        fd.append("files", file);
+                        const res = await fetch("/api/upload", {
+                          method: "POST",
+                          body: fd,
+                        });
+                        const data = await res.json();
+                        if (data.urls?.length) {
+                          updateService(idx, "image", data.urls[0]);
+                        }
                       }}
                     />
+                  </label>
+                  {service.image && (
+                    <div
+                      style={{ position: "relative", display: "inline-block" }}
+                    >
+                      <img
+                        src={service.image}
+                        alt="preview"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "cover",
+                          borderRadius: "6px",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateService(idx, "image", "")}
+                        style={{
+                          position: "absolute",
+                          top: "-8px",
+                          right: "-8px",
+                          background: "#ef4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -396,32 +433,35 @@ export default function EditPage() {
           <legend className="section-title">Наши работы</legend>
           <div className="form-group">
             <label>Загрузить фото</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={async (e) => {
-                const files = e.target.files;
-                if (!files?.length) return;
-                const fd = new FormData();
-                for (let i = 0; i < files.length; i++)
-                  fd.append("files", files[i]);
-                const res = await fetch("/api/upload", {
-                  method: "POST",
-                  body: fd,
-                });
-                const data = await res.json();
-                if (data.urls) {
-                  const newUrls = data.urls.join("|");
-                  setForm((prev) => ({
-                    ...prev,
-                    gallery: prev.gallery
-                      ? prev.gallery + "|" + newUrls
-                      : newUrls,
-                  }));
-                }
-              }}
-            />
+            <label className="file-upload-label">
+              <span>🖼️</span> Добавить фото
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={async (e) => {
+                  const files = e.target.files;
+                  if (!files?.length) return;
+                  const fd = new FormData();
+                  for (let i = 0; i < files.length; i++)
+                    fd.append("files", files[i]);
+                  const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: fd,
+                  });
+                  const data = await res.json();
+                  if (data.urls) {
+                    const newUrls = data.urls.join("|");
+                    setForm((prev) => ({
+                      ...prev,
+                      gallery: prev.gallery
+                        ? prev.gallery + "|" + newUrls
+                        : newUrls,
+                    }));
+                  }
+                }}
+              />
+            </label>
           </div>
           {form.gallery && (
             <div

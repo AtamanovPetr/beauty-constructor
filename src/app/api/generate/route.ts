@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Пресеты стилей (оставь свои, это пример)
+// Функция экранирования HTML-сущностей (защита от XSS)
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Пресеты стилей (CSS не экранируем!)
 const STYLES: Record<string, string> = {
   rose: `
     .beauty-site { background: linear-gradient(135deg, #fdf2f4, #f9eef2); min-height: 100vh; }
@@ -66,7 +76,7 @@ export async function POST(request: Request) {
       .filter(Boolean);
     const cleanPhone = payload.phone ? payload.phone.replace(/\D/g, "") : "";
 
-    // Генерация HTML (полный шаблон, как мы делали раньше)
+    // Генерация HTML с правильным экранированием
     const html = `
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -123,8 +133,8 @@ export async function POST(request: Request) {
     <div class="container">
       <div class="hero fade-in-up">
         ${payload.logo ? `<img src="${payload.logo}" alt="Логотип" class="logo" />` : ""}
-        <h1>${payload.name}</h1>
-        <p class="subtitle">${payload.phrase || ""}</p>
+        <h1>${escapeHtml(payload.name)}</h1>
+        <p class="subtitle">${escapeHtml(payload.phrase) || ""}</p>
       </div>
 
       <section class="fade-in-up" style="margin-bottom: 80px;">
@@ -134,13 +144,18 @@ export async function POST(request: Request) {
           <div class="services-slider">
             ${services
               .map(
-                (s: { image: any; name: any; price: any; desc: any }) => `
+                (s: {
+                  image: any;
+                  name: string;
+                  price: string;
+                  desc: string;
+                }) => `
               <div class="service-card">
-                ${s.image ? `<img src="${s.image}" alt="${s.name}" class="service-img" onerror="this.style.display='none'">` : ""}
+                ${s.image ? `<img src="${s.image}" alt="${escapeHtml(s.name)}" class="service-img" onerror="this.style.display='none'">` : ""}
                 <div class="service-body">
-                  <div class="service-name">${s.name}</div>
-                  ${s.price ? `<div class="service-price">${s.price}</div>` : ""}
-                  ${s.desc ? `<div class="service-desc">${s.desc}</div>` : ""}
+                  <div class="service-name">${escapeHtml(s.name)}</div>
+                  ${s.price ? `<div class="service-price">${escapeHtml(s.price)}</div>` : ""}
+                  ${s.desc ? `<div class="service-desc">${escapeHtml(s.desc)}</div>` : ""}
                 </div>
               </div>
             `,
@@ -184,10 +199,10 @@ export async function POST(request: Request) {
         <div class="reviews-grid">
           ${reviews
             .map(
-              (r: { text: any; author: any }) => `
+              (r: { text: string; author: string }) => `
             <div class="review-card">
-              <p class="review-text">«${r.text}»</p>
-              <p class="review-author">${r.author}</p>
+              <p class="review-text">«${escapeHtml(r.text)}»</p>
+              <p class="review-author">${escapeHtml(r.author)}</p>
             </div>
           `,
             )

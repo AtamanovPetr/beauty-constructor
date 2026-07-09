@@ -152,18 +152,17 @@ export default function DashboardPage() {
             </p>
           </div>
           {userPlan === "FREE" && (
-            <button
+            <Link
+              href="/pricing"
               className="submit-btn"
               style={{
                 background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
                 color: "#4a2e38",
                 fontWeight: 600,
               }}
-              onClick={handleUpgrade}
-              disabled={planLoading}
             >
-              {planLoading ? "Обновляем..." : "Перейти на PRO"}
-            </button>
+              Перейти на PRO
+            </Link>
           )}
           {userPlan === "PRO" && (
             <button

@@ -399,3 +399,7 @@ body {
 .file-upload-icon {
   font-size: 1.2rem;
 }
+
+body {
+  overflow-x: hidden;
+}

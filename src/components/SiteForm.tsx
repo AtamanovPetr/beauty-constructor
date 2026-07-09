@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 interface Props {
   userId: string;
-  onGenerate: (html: string, slug: string) => void; // изменён пропс
+  onGenerate: (html: string, slug: string) => void;
 }
 
 const STORAGE_KEY = "siteFormDraft";
@@ -16,66 +16,58 @@ function servicesToString(services: ServiceItem[]): string {
     .join("\n");
 }
 
-function stringToServices(str: string): ServiceItem[] {
-  return str
-    .split("\n")
-    .filter((line) => line.trim())
-    .map((line) => {
-      const parts = line.split("|").map((p) => p.trim());
-      return {
-        name: parts[0] || "",
-        price: parts[1] || "",
-        image: parts[2] || "",
-        desc: parts[3] || "",
-      };
-    });
-}
-
 const DEFAULT_FORM: FormData = {
   name: "Beauty Star",
-  phrase: "Сияйте каждый день",
+  phrase:
+    "Пространство, где создаются умные стрижки, безупречные сложные окрашивания и глубокий молекулярный уход.",
   skills: "",
   services: [
     {
-      name: "Стрижка женская",
-      price: "от 500₽",
-      image: "",
-      desc: "Современная стрижка любой сложности",
+      name: "Умная стрижка",
+      price: "2 500 ₽",
+      image: "https://i.ibb.co/9mLzKm8R/service1.webp",
+      desc: "Стрижка по форме роста волос, не требующая долгой укладки.",
     },
     {
-      name: "Окрашивание",
-      price: "от 1200₽",
-      image: "",
-      desc: "Стойкое окрашивание премиум-красками",
+      name: "Сложное окрашивание",
+      price: "8 500 ₽",
+      image: "https://i.ibb.co/hxJXKdHS/service2.webp",
+      desc: "Airtouch, Shatush, Balayage. Плавные переходы.",
     },
     {
-      name: "Маникюр",
-      price: "от 400₽",
-      image: "",
-      desc: "Классический и аппаратный маникюр",
+      name: "Тонирование & Уход",
+      price: "4 000 ₽",
+      image: "https://i.ibb.co/HfpJxpPk/service3.webp",
+      desc: "Обновление цвета, придание блеска.",
     },
     {
-      name: "Укладка",
-      price: "от 300₽",
-      image: "",
-      desc: "Праздничная и повседневная укладка",
+      name: "Вечерняя укладка",
+      price: "3 000 ₽",
+      image: "https://i.ibb.co/5xkCmK40/service5.webp",
+      desc: "Элегантные локоны для особого вечера.",
     },
     {
-      name: "SPA-уход",
-      price: "от 800₽",
-      image: "",
-      desc: "Расслабляющие процедуры для лица",
+      name: "Премиальный уход Absolute",
+      price: "3 500 ₽",
+      image: "https://i.ibb.co/xt17YjrG/photo2.webp",
+      desc: "Интенсивное восстановление на молекулярном уровне.",
+    },
+    {
+      name: "Экспресс-укладка",
+      price: "1 800 ₽",
+      image: "https://i.ibb.co/1w60YPY/photo1.webp",
+      desc: "Быстрая сушка на брашинг.",
     },
   ],
   logo: "https://i.ibb.co/1w60YPY/photo1.webp",
   inst: "https://www.instagram.com/beauty.star",
   phone: "+7 (999) 123-45-67",
-  style: "rose",
+  style: "premium",
   reviews:
-    "Анна|Потрясающий сервис! Стрижка именно такая, как я хотела.\n" +
-    "Мария|Очень довольна маникюром, делаю здесь уже полгода.\n" +
-    "Ирина|Вежливый персонал и уютная атмосфера.",
-  address: "Москва, ул. Арбат, 12",
+    "Анна С.|Посетила салон по рекомендации подруги. Мастер внимательно выслушала пожелания, предложила несколько вариантов окрашивания. В итоге я выбрала сложное Airtouch — цвет получился невероятно глубоким, волосы заблестели! Теперь я постоянный клиент и всем рекомендую.\n" +
+    "Мария К.|Хожу на стрижку уже полгода. Забыла, что такое укладка по утрам — волосы после мытья сами ложатся идеально. Атмосфера в студии уютная, всегда предложат чай или кофе. Отдельное спасибо администратору за вежливость и заботу.\n" +
+    "Ольга П.|Делала процедуру Absolute после долгого осветления. Волосы буквально ожили, стали мягкими и послушными. Мастер дала подробные рекомендации по домашнему уходу, и теперь я знаю, как сохранить результат надолго. Очень довольна!",
+  address: "г. Москва, ул. Большая Спасская, д. 12",
   gallery:
     "https://i.ibb.co/1w60YPY/photo1.webp|" +
     "https://i.ibb.co/xt17YjrG/photo2.webp|" +
@@ -98,7 +90,6 @@ export default function SiteForm({ userId, onGenerate }: Props) {
   const [form, setForm] = useState<FormData>(loadDraft);
   const [saving, setSaving] = useState(false);
 
-  // Автосохранение в localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
   }, [form]);
@@ -158,7 +149,9 @@ export default function SiteForm({ userId, onGenerate }: Props) {
 
       localStorage.removeItem(STORAGE_KEY);
       setForm(DEFAULT_FORM);
-      toast.success("Сайт создан!");
+      toast.success(
+        "Сайт создан! 👉 Проверьте в «Мои сайты», чтобы открыть или опубликовать.",
+      );
       onGenerate(data.html, data.slug);
     } catch (err) {
       toast.error("Ошибка сети. Попробуйте позже.");
@@ -254,21 +247,6 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           </div>
         </fieldset>
 
-        {/* Стиль */}
-        <fieldset className="form-section">
-          <legend className="section-title">Стиль</legend>
-          <div className="form-group">
-            <select
-              value={form.style}
-              onChange={(e) => setForm({ ...form, style: e.target.value })}
-            >
-              <option value="rose">Розовый</option>
-              <option value="lavender">Лавандовый</option>
-              <option value="mint">Мятный</option>
-            </select>
-          </div>
-        </fieldset>
-
         {/* Услуги – карточки */}
         <fieldset className="form-section">
           <legend className="section-title">Услуги</legend>
@@ -313,7 +291,7 @@ export default function SiteForm({ userId, onGenerate }: Props) {
                 <input
                   value={service.name}
                   onChange={(e) => updateService(idx, "name", e.target.value)}
-                  placeholder="Стрижка женская"
+                  placeholder="Умная стрижка"
                 />
               </div>
               <div className="form-group">
@@ -321,7 +299,7 @@ export default function SiteForm({ userId, onGenerate }: Props) {
                 <input
                   value={service.price}
                   onChange={(e) => updateService(idx, "price", e.target.value)}
-                  placeholder="500₽"
+                  placeholder="2 500 ₽"
                 />
               </div>
               <div className="form-group">
@@ -542,29 +520,6 @@ export default function SiteForm({ userId, onGenerate }: Props) {
             />
           </div>
         </fieldset>
-        {/* SEO */}
-        <fieldset className="form-section">
-          <legend className="section-title">SEO (для поисковиков)</legend>
-          <div className="form-group">
-            <label>Заголовок страницы (Title)</label>
-            <input
-              value={form.metaTitle || ""}
-              onChange={(e) => setForm({ ...form, metaTitle: e.target.value })}
-              placeholder="Салон красоты Мария — стрижки и окрашивание"
-            />
-          </div>
-          <div className="form-group">
-            <label>Описание (Description)</label>
-            <textarea
-              rows={2}
-              value={form.metaDescription || ""}
-              onChange={(e) =>
-                setForm({ ...form, metaDescription: e.target.value })
-              }
-              placeholder="Профессиональные стрижки, окрашивание Airtouch, маникюр. Удобная онлайн-запись."
-            />
-          </div>
-        </fieldset>
 
         {/* Контакты */}
         <fieldset className="form-section">
@@ -584,6 +539,9 @@ export default function SiteForm({ userId, onGenerate }: Props) {
             />
           </div>
         </fieldset>
+
+        {/* Стиль скрыт */}
+        <input type="hidden" value={form.style} />
 
         <button type="submit" className="submit-btn" disabled={saving}>
           {saving ? (

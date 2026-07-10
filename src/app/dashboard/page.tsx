@@ -24,6 +24,9 @@ export default function DashboardPage() {
   const [userLimit, setUserLimit] = useState(1);
   const [planLoading, setPlanLoading] = useState(false);
 
+  // ➕ Заглушка тарифов
+  const [testPlan, setTestPlan] = useState<"pro" | "free" | "">("");
+
   useEffect(() => {
     if (!userId) return;
     fetch(`/api/sites?userId=${userId}`)
@@ -51,6 +54,13 @@ export default function DashboardPage() {
       })
       .catch(console.error);
   }, [userId]);
+
+  // Вычисляем отображаемый тариф и лимит с учётом заглушки
+  const displayPlan =
+    testPlan === "pro" ? "PRO" : testPlan === "free" ? "FREE" : userPlan;
+  const displayLimit =
+    testPlan === "pro" ? 5 : testPlan === "free" ? 1 : userLimit;
+  const limitReached = sites.length >= displayLimit;
 
   const handlePublish = async (siteId: string) => {
     await fetch("/api/sites/publish", {
@@ -128,9 +138,9 @@ export default function DashboardPage() {
               Ваш тариф:{" "}
               <span
                 style={{
-                  color: userPlan === "FREE" ? "#b07a8c" : "#4a9c6c",
+                  color: displayPlan === "FREE" ? "#b07a8c" : "#4a9c6c",
                   background:
-                    userPlan === "FREE"
+                    displayPlan === "FREE"
                       ? "rgba(176,122,140,0.15)"
                       : "rgba(74,156,108,0.15)",
                   padding: "2px 12px",
@@ -138,7 +148,7 @@ export default function DashboardPage() {
                   fontSize: "0.9rem",
                 }}
               >
-                {userPlan}
+                {displayPlan}
               </span>
             </p>
             <p
@@ -148,10 +158,21 @@ export default function DashboardPage() {
                 color: "#8b6e7a",
               }}
             >
-              Использовано сайтов: {sites.length} / {userLimit}
+              Использовано сайтов: {sites.length} / {displayLimit}
+              {limitReached && displayPlan === "FREE" && (
+                <span
+                  style={{
+                    color: "#ef4444",
+                    marginLeft: "8px",
+                    fontWeight: 600,
+                  }}
+                >
+                  Лимит исчерпан
+                </span>
+              )}
             </p>
           </div>
-          {userPlan === "FREE" && (
+          {displayPlan === "FREE" && (
             <Link
               href="/pricing"
               className="submit-btn"
@@ -164,7 +185,7 @@ export default function DashboardPage() {
               Перейти на PRO
             </Link>
           )}
-          {userPlan === "PRO" && (
+          {displayPlan === "PRO" && (
             <button
               className="submit-btn"
               style={{
@@ -200,6 +221,8 @@ export default function DashboardPage() {
             </button>
           )}
         </div>
+
+        {/* Преимущества PRO (показываем красиво) */}
         <div
           style={{
             marginTop: "16px",
@@ -236,7 +259,46 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "16px", marginBottom: "30px" }}>
+      {/* ➕ Заглушка тарифов */}
+      {process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            margin: "10px 0 30px",
+            padding: "10px",
+            background: "#fff3cd",
+            borderRadius: "8px",
+          }}
+        >
+          <label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>
+            🧪 Заглушка тарифа (только для разработки):
+          </label>
+          <select
+            value={testPlan}
+            onChange={(e) => setTestPlan(e.target.value as any)}
+            style={{ marginLeft: "10px", padding: "4px 8px" }}
+          >
+            <option value="">Реальный план из БД</option>
+            <option value="pro">PRO (принудительно)</option>
+            <option value="free">FREE (принудительно)</option>
+          </select>
+          <p
+            style={{ margin: "8px 0 0", fontSize: "0.8rem", color: "#856404" }}
+          >
+            Меняет только отображение тарифа и лимитов. Реальный план в базе не
+            изменяется.
+          </p>
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          marginBottom: "30px",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
         <Link
           href="/"
           className="submit-btn"
@@ -250,13 +312,49 @@ export default function DashboardPage() {
         >
           ← На главную
         </Link>
-        <Link
-          href="/"
-          className="submit-btn"
-          style={{ padding: "8px 20px", fontSize: "0.9rem" }}
-        >
-          + Создать новый
-        </Link>
+
+        {!limitReached ? (
+          <Link
+            href="/"
+            className="submit-btn"
+            style={{ padding: "8px 20px", fontSize: "0.9rem" }}
+          >
+            + Создать новый
+          </Link>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <button
+              className="submit-btn"
+              disabled
+              style={{
+                padding: "8px 20px",
+                fontSize: "0.9rem",
+                opacity: 0.5,
+                cursor: "not-allowed",
+              }}
+              title={
+                displayPlan === "FREE"
+                  ? "Лимит сайтов исчерпан. Удалите ненужный сайт или перейдите на PRO."
+                  : "Достигнут лимит сайтов для вашего тарифа."
+              }
+            >
+              + Создать новый (лимит исчерпан)
+            </button>
+            {displayPlan === "FREE" && (
+              <Link
+                href="/pricing"
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#c9a96e",
+                  textDecoration: "underline",
+                  textAlign: "center",
+                }}
+              >
+                Увеличить лимит → PRO
+              </Link>
+            )}
+          </div>
+        )}
       </div>
 
       {sites.length === 0 ? (
@@ -264,13 +362,15 @@ export default function DashboardPage() {
           <p style={{ color: "#8b6e7a", marginBottom: "16px" }}>
             У вас пока нет сайтов.
           </p>
-          <Link
-            href="/"
-            className="submit-btn"
-            style={{ padding: "10px 24px" }}
-          >
-            Создать первый сайт
-          </Link>
+          {!limitReached && (
+            <Link
+              href="/"
+              className="submit-btn"
+              style={{ padding: "10px 24px" }}
+            >
+              Создать первый сайт
+            </Link>
+          )}
         </div>
       ) : (
         <div className="sites-grid">
@@ -322,7 +422,7 @@ export default function DashboardPage() {
                   Удалить
                 </button>
               </div>
-              {userPlan === "PRO" && site.published && (
+              {displayPlan === "PRO" && site.published && (
                 <div
                   style={{
                     marginTop: "12px",

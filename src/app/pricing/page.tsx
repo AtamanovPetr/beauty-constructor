@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ProModal from "@/components/ProModal";
+
 export default function PricingPage() {
   const [visible, setVisible] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -17,6 +18,7 @@ export default function PricingPage() {
     }>
   >([]);
   const [showProModal, setShowProModal] = useState(false);
+
   const handleProSubmit = async (email: string) => {
     const res = await fetch("/api/payment", {
       method: "POST",
@@ -31,6 +33,7 @@ export default function PricingPage() {
       );
     }
   };
+
   useEffect(() => {
     setVisible(true);
     const newParticles = Array.from({ length: 15 }, (_, i) => ({
@@ -232,12 +235,19 @@ export default function PricingPage() {
                 marginBottom: "30px",
               }}
             >
-              <li style={{ padding: "8px 0" }}>✓ 1 сайт</li>
-              <li style={{ padding: "8px 0" }}>✓ Форма онлайн-записи</li>
+              <li style={{ padding: "8px 0" }}>✓ 1 сайт-визитка</li>
+              <li style={{ padding: "8px 0" }}>✓ До 3 услуг в каталоге</li>
+              <li style={{ padding: "8px 0" }}>✓ 1 базовая тема (розовая)</li>
               <li style={{ padding: "8px 0" }}>
-                ✓ Брендинг конструктора в футере
+                ✓ Заявки в ВК (только факт заявки)
               </li>
-              <li style={{ padding: "8px 0" }}>✓ Базовая поддержка</li>
+              <li style={{ padding: "8px 0" }}>
+                ✓ Срок работы сайта — 30 дней
+              </li>
+              <li style={{ padding: "8px 0" }}>
+                ✓ Брендинг «Создано в Beauty Constructor»
+              </li>
+              <li style={{ padding: "8px 0" }}>✓ Базовая поддержка (FAQ)</li>
             </ul>
           </div>
           <Link
@@ -275,8 +285,28 @@ export default function PricingPage() {
             justifyContent: "space-between",
             transform: "scale(1.03)",
             transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            position: "relative",
           }}
         >
+          {/* Шильдик "Выбор мастеров" */}
+          <div
+            style={{
+              position: "absolute",
+              top: "-14px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
+              color: "#4a2e38",
+              fontWeight: 700,
+              fontSize: "0.8rem",
+              padding: "4px 16px",
+              borderRadius: "20px",
+              boxShadow: "0 4px 10px rgba(201,169,110,0.3)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Выбор мастеров
+          </div>
           <div>
             <div
               style={{
@@ -324,8 +354,16 @@ export default function PricingPage() {
               }}
             >
               <li style={{ padding: "8px 0" }}>✓ До 5 сайтов</li>
-              <li style={{ padding: "8px 0" }}>✓ Свой домен (CNAME)</li>
+              <li style={{ padding: "8px 0" }}>
+                ✓ Неограниченное количество услуг
+              </li>
+              <li style={{ padding: "8px 0" }}>✓ Все темы + эксклюзивные</li>
+              <li style={{ padding: "8px 0" }}>
+                ✓ Заявки в ВК с полными данными клиента
+              </li>
+              <li style={{ padding: "8px 0" }}>✓ Сайт работает постоянно</li>
               <li style={{ padding: "8px 0" }}>✓ Без брендинга конструктора</li>
+              <li style={{ padding: "8px 0" }}>✓ Свой домен (CNAME)</li>
               <li style={{ padding: "8px 0" }}>✓ Приоритетная поддержка</li>
             </ul>
           </div>

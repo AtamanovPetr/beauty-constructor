@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import type { FormData, ServiceItem } from "@/app/types";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 interface Props {
   userId: string;
@@ -90,11 +91,24 @@ export default function SiteForm({ userId, onGenerate }: Props) {
   const [form, setForm] = useState<FormData>(loadDraft);
   const [saving, setSaving] = useState(false);
 
+  // Заглушка тарифа (для разработки)
+  const [testPlan, setTestPlan] = useState<"pro" | "free" | "">("");
+
+  // Определяем, является ли текущий режим PRO (по заглушке, иначе считаем PRO)
+  const isPro = testPlan === "free" ? false : true;
+  const maxServices = isPro ? 100 : 3; // для FREE максимум 3 услуги
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
   }, [form]);
 
   const addService = () => {
+    if (!isPro && form.services.length >= maxServices) {
+      toast.error(
+        "В бесплатной версии можно добавить только 3 услуги. Перейдите на PRO для полного каталога.",
+      );
+      return;
+    }
     setForm((prev) => ({
       ...prev,
       services: [
@@ -137,7 +151,10 @@ export default function SiteForm({ userId, onGenerate }: Props) {
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(testPlan ? { "x-test-plan": testPlan } : {}),
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -163,6 +180,41 @@ export default function SiteForm({ userId, onGenerate }: Props) {
   return (
     <div>
       <form className="constructor-form" onSubmit={handleSubmit}>
+        {/* Заглушка тарифов (видна только при разработке) */}
+        {process.env.NODE_ENV === "development" && (
+          <div
+            style={{
+              margin: "10px 0",
+              padding: "10px",
+              background: "#fff3cd",
+              borderRadius: "8px",
+            }}
+          >
+            <label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>
+              🧪 Заглушка тарифа (только для разработки):
+            </label>
+            <select
+              value={testPlan}
+              onChange={(e) => setTestPlan(e.target.value as any)}
+              style={{ marginLeft: "10px", padding: "4px 8px" }}
+            >
+              <option value="">Реальный план (по умолчанию PRO)</option>
+              <option value="pro">PRO (принудительно)</option>
+              <option value="free">FREE (принудительно)</option>
+            </select>
+            <p
+              style={{
+                margin: "8px 0 0",
+                fontSize: "0.8rem",
+                color: "#856404",
+              }}
+            >
+              Сейчас форма в режиме: <strong>{isPro ? "PRO" : "FREE"}</strong>.{" "}
+              {!isPro && "Ограничения: 3 услуги, без галереи, с брендингом."}
+            </p>
+          </div>
+        )}
+
         {/* Основная информация */}
         <fieldset className="form-section">
           <legend className="section-title">Основная информация</legend>
@@ -249,8 +301,15 @@ export default function SiteForm({ userId, onGenerate }: Props) {
 
         {/* Услуги – карточки */}
         <fieldset className="form-section">
-          <legend className="section-title">Услуги</legend>
-          {form.services.map((service, idx) => (
+          <legend className="section-title">
+            Услуги{" "}
+            {!isPro && (
+              <span style={{ color: "#b07a8c", fontSize: "0.9rem" }}>
+                (макс. 3 для FREE)
+              </span>
+            )}
+          </legend>
+          {form.services.slice(0, maxServices).map((service, idx) => (
             <div
               key={idx}
               className="slide-down"
@@ -382,119 +441,162 @@ export default function SiteForm({ userId, onGenerate }: Props) {
               </div>
             </div>
           ))}
-          <button
-            type="button"
-            onClick={addService}
-            className="submit-btn"
-            style={{
-              marginTop: "8px",
-              padding: "8px 16px",
-              fontSize: "0.9rem",
-            }}
-          >
-            + Добавить услугу
-          </button>
-        </fieldset>
-
-        {/* Наши работы */}
-        <fieldset className="form-section">
-          <legend className="section-title">Наши работы</legend>
-          <div className="form-group">
-            <label>Загрузить фото</label>
-            <label className="file-upload-label">
-              <span>🖼️</span> Добавить фото
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={async (e) => {
-                  const files = e.target.files;
-                  if (!files?.length) return;
-                  const fd = new FormData();
-                  for (let i = 0; i < files.length; i++)
-                    fd.append("files", files[i]);
-                  const res = await fetch("/api/upload", {
-                    method: "POST",
-                    body: fd,
-                  });
-                  const data = await res.json();
-                  if (data.urls) {
-                    const newUrls = data.urls.join("|");
-                    setForm((prev) => ({
-                      ...prev,
-                      gallery: prev.gallery
-                        ? prev.gallery + "|" + newUrls
-                        : newUrls,
-                    }));
-                  }
-                }}
-              />
-            </label>
-          </div>
-          {form.gallery && (
-            <div
+          {form.services.length < maxServices && (
+            <button
+              type="button"
+              onClick={addService}
+              className="submit-btn"
               style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "10px",
-                marginTop: "10px",
+                marginTop: "8px",
+                padding: "8px 16px",
+                fontSize: "0.9rem",
               }}
             >
-              {form.gallery
-                .split("|")
-                .filter(Boolean)
-                .map((url, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      position: "relative",
-                      width: "100px",
-                      height: "100px",
-                    }}
-                  >
-                    <img
-                      src={url}
-                      alt={`Работа ${idx + 1}`}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        const urls = form.gallery.split("|").filter(Boolean);
-                        urls.splice(idx, 1);
-                        setForm((prev) => ({
-                          ...prev,
-                          gallery: urls.join("|"),
-                        }));
-                      }}
-                      style={{
-                        position: "absolute",
-                        top: "-8px",
-                        right: "-8px",
-                        background: "#ef4444",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "50%",
-                        width: "20px",
-                        height: "20px",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-            </div>
+              + Добавить услугу
+            </button>
+          )}
+          {!isPro && form.services.length >= maxServices && (
+            <p
+              style={{
+                color: "#8b6e7a",
+                fontSize: "0.85rem",
+                marginTop: "8px",
+              }}
+            >
+              В бесплатном тарифе доступно не более 3 услуг.{" "}
+              <Link
+                href="/pricing"
+                style={{
+                  color: "#c9a96e",
+                  textDecoration: "underline",
+                }}
+              >
+                Перейти на PRO
+              </Link>
+            </p>
           )}
         </fieldset>
+
+        {/* Наши работы (только для PRO) */}
+        {isPro && (
+          <fieldset className="form-section">
+            <legend className="section-title">Наши работы</legend>
+            <div className="form-group">
+              <label>Загрузить фото</label>
+              <label className="file-upload-label">
+                <span>🖼️</span> Добавить фото
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const files = e.target.files;
+                    if (!files?.length) return;
+                    const fd = new FormData();
+                    for (let i = 0; i < files.length; i++)
+                      fd.append("files", files[i]);
+                    const res = await fetch("/api/upload", {
+                      method: "POST",
+                      body: fd,
+                    });
+                    const data = await res.json();
+                    if (data.urls) {
+                      const newUrls = data.urls.join("|");
+                      setForm((prev) => ({
+                        ...prev,
+                        gallery: prev.gallery
+                          ? prev.gallery + "|" + newUrls
+                          : newUrls,
+                      }));
+                    }
+                  }}
+                />
+              </label>
+            </div>
+            {form.gallery && (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                {form.gallery
+                  .split("|")
+                  .filter(Boolean)
+                  .map((url, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        position: "relative",
+                        width: "100px",
+                        height: "100px",
+                      }}
+                    >
+                      <img
+                        src={url}
+                        alt={`Работа ${idx + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          const urls = form.gallery.split("|").filter(Boolean);
+                          urls.splice(idx, 1);
+                          setForm((prev) => ({
+                            ...prev,
+                            gallery: urls.join("|"),
+                          }));
+                        }}
+                        style={{
+                          position: "absolute",
+                          top: "-8px",
+                          right: "-8px",
+                          background: "#ef4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </fieldset>
+        )}
+
+        {!isPro && (
+          <fieldset
+            className="form-section"
+            style={{ opacity: 0.7, background: "#f9f9f9" }}
+          >
+            <legend className="section-title">Наши работы 🔒</legend>
+            <p
+              style={{
+                color: "#8b6e7a",
+                fontSize: "0.9rem",
+                margin: "8px 0",
+              }}
+            >
+              Галерея работ доступна только на тарифе PRO. Ваш бесплатный сайт
+              будет без этого блока.
+            </p>
+          </fieldset>
+        )}
 
         {/* Отзывы */}
         <fieldset className="form-section">
@@ -540,7 +642,32 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           </div>
         </fieldset>
 
-        {/* Стиль скрыт */}
+        {/* Напоминание о брендинге для FREE */}
+        {!isPro && (
+          <div
+            style={{
+              background: "#fff3cd",
+              borderRadius: "10px",
+              padding: "12px",
+              margin: "16px 0",
+              fontSize: "0.9rem",
+              color: "#856404",
+            }}
+          >
+            ⚠️ На бесплатном тарифе в футере сайта будет надпись «Создано в
+            Beauty Constructor» и сайт будет ограничен 30 днями.{" "}
+            <Link
+              href="/pricing"
+              style={{
+                color: "#c9a96e",
+                textDecoration: "underline",
+              }}
+            >
+              Убрать ограничения → PRO
+            </Link>
+          </div>
+        )}
+
         <input type="hidden" value={form.style} />
 
         <button type="submit" className="submit-btn" disabled={saving}>

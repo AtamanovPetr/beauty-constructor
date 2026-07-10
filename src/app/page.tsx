@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { loginWithGoogle, logout } from "@/firebase";
+import { loginWithGoogle } from "@/firebase";
 import Link from "next/link";
 import SiteForm from "@/components/SiteForm";
-
+import Header from "@/components/Header";
 export default function HomePage() {
   const { userId } = useAuth();
   const [visible, setVisible] = useState(false);
@@ -22,6 +22,11 @@ export default function HomePage() {
   const [html, setHtml] = useState<string>("");
   const [lastSlug, setLastSlug] = useState<string>("");
   const [success, setSuccess] = useState(false);
+  const [themeSlide, setThemeSlide] = useState(0);
+
+  const nextThemeSlide = () => setThemeSlide((prev) => (prev === 0 ? 1 : 0));
+  const prevThemeSlide = () => setThemeSlide((prev) => (prev === 0 ? 1 : 0));
+
   useEffect(() => {
     setVisible(true);
 
@@ -90,10 +95,9 @@ export default function HomePage() {
           />
         ))}
       </div>
-
-      {/* Hero */}
-      <div
-        className={`fade-in-up ${visible ? "visible" : ""}`}
+      <Header />
+      {/* ─────── Hero с волнами ─────── */}
+      <section
         style={{
           minHeight: "100vh",
           display: "flex",
@@ -101,7 +105,7 @@ export default function HomePage() {
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "0 20px",
+          padding: "120px 20px 80px",
           position: "relative",
           zIndex: 1,
           background:
@@ -110,98 +114,62 @@ export default function HomePage() {
           animation: "gradientShift 15s ease infinite",
         }}
       >
-        {/* Навигация */}
         <div
           style={{
             position: "absolute",
-            top: "20px",
-            right: "20px",
-            display: "flex",
-            gap: "12px",
-            zIndex: 10,
+            bottom: 0,
+            left: 0,
+            width: "100%",
+            overflow: "hidden",
+            lineHeight: 0,
           }}
         >
-          {userId ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="pulse-button"
-                style={{
-                  padding: "10px 24px",
-                  fontSize: "0.9rem",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  borderRadius: "50px",
-                }}
-              >
-                Мои сайты
-              </Link>
-              <button
-                onClick={logout}
-                className="glass-button"
-                style={{
-                  padding: "10px 24px",
-                  fontSize: "0.9rem",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  borderRadius: "50px",
-                }}
-              >
-                Выйти
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={loginWithGoogle}
-              className="pulse-button"
-              style={{
-                padding: "15px 30px",
-                fontSize: "0.9rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                border: "none",
-                borderRadius: "50px",
-              }}
-            >
-              Войти через Google
-            </button>
-          )}
+          <svg
+            viewBox="0 0 1440 200"
+            preserveAspectRatio="none"
+            style={{ width: "100%", height: "100px" }}
+          >
+            <path
+              fill="rgba(255,255,255,0.3)"
+              d="M0,128L48,117.3C96,107,192,85,288,74.7C384,64,480,64,576,85.3C672,107,768,149,864,149.3C960,149,1056,107,1152,90.7C1248,75,1344,85,1392,90.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </svg>
         </div>
 
         <h1
           style={{
-            fontSize: "clamp(2.5rem, 8vw, 4.5rem)",
+            fontSize: "clamp(2rem, 8vw, 5rem)",
             fontWeight: 800,
             background:
               "linear-gradient(135deg, #6d4c5e, #b07a8c, #c9a96e, #b07a8c, #6d4c5e)",
             backgroundSize: "200% auto",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            marginBottom: "24px",
+            marginBottom: "20px",
             lineHeight: 1.2,
             animation: "textGradient 3s linear infinite",
           }}
         >
-          Конструктор сайтов
-          <br />
-          для салонов красоты
+          Сайт для салона красоты
+          <br /> за 5 минут
         </h1>
         <p
           style={{
-            fontSize: "clamp(1rem, 3vw, 1.3rem)",
+            fontSize: "clamp(0.9rem, 3vw, 1.3rem)",
             color: "#8b6e7a",
             maxWidth: "600px",
-            marginBottom: "48px",
+            marginBottom: "32px",
             lineHeight: 1.6,
+            padding: "0 10px",
           }}
         >
-          Создайте адаптивную визитку с онлайн-записью за 5 минут. Бесплатный
-          тариф навсегда. Без дизайнера и программиста.
+          Конструктор визиток с онлайн-записью, адаптивным дизайном и бесплатным
+          тарифом.
         </p>
         <div
           style={{
             display: "flex",
-            gap: "20px",
+            gap: "16px",
             flexWrap: "wrap",
             justifyContent: "center",
           }}
@@ -210,8 +178,8 @@ export default function HomePage() {
             href="/pricing"
             className="pulse-button"
             style={{
-              padding: "18px 48px",
-              fontSize: "1.2rem",
+              padding: "16px 32px",
+              fontSize: "clamp(0.9rem, 3vw, 1.2rem)",
               fontWeight: 700,
               background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
               color: "#4a2e38",
@@ -227,8 +195,8 @@ export default function HomePage() {
               onClick={scrollToForm}
               className="glass-button"
               style={{
-                padding: "18px 48px",
-                fontSize: "1.2rem",
+                padding: "16px 32px",
+                fontSize: "clamp(0.9rem, 3vw, 1.2rem)",
                 fontWeight: 700,
                 background: "rgba(255,255,255,0.6)",
                 backdropFilter: "blur(10px)",
@@ -238,15 +206,15 @@ export default function HomePage() {
                 cursor: "pointer",
               }}
             >
-              Перейти к форме
+              Создать сайт
             </button>
           ) : (
             <button
               onClick={loginWithGoogle}
               className="glass-button"
               style={{
-                padding: "18px 48px",
-                fontSize: "1.2rem",
+                padding: "16px 32px",
+                fontSize: "clamp(0.9rem, 3vw, 1.2rem)",
                 fontWeight: 700,
                 background: "rgba(255,255,255,0.6)",
                 backdropFilter: "blur(10px)",
@@ -260,13 +228,12 @@ export default function HomePage() {
             </button>
           )}
         </div>
-        {/* Стрелка вниз */}
         <div
           onClick={scrollToForm}
           className="bounce-arrow"
           style={{
             position: "absolute",
-            bottom: "40px",
+            bottom: "30px",
             cursor: "pointer",
             width: "48px",
             height: "48px",
@@ -291,26 +258,223 @@ export default function HomePage() {
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </div>
+      </section>
+
+      {/* ─────── Примеры тем (видео-слайдер) ─────── */}
+      <div
+        className="reveal-on-scroll"
+        style={{
+          padding: "60px 20px",
+          textAlign: "center",
+          position: "relative",
+          zIndex: 1,
+          backgroundColor: "white",
+        }}
+      >
+        <h2 className="section-title" style={{ marginBottom: "20px" }}>
+          Посмотрите, как работают сайты
+        </h2>
+        <p
+          style={{
+            color: "#8b6e7a",
+            marginBottom: "40px",
+            maxWidth: "600px",
+            margin: "0 auto 40px",
+          }}
+        >
+          Короткие видео: слева — бесплатная версия, справа — PRO с анимациями и
+          галереей.
+        </p>
+
+        <div
+          style={{ position: "relative", maxWidth: "900px", margin: "0 auto" }}
+        >
+          {/* Стрелка влево */}
+          <button
+            onClick={prevThemeSlide}
+            style={{
+              position: "absolute",
+              left: "0",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "white",
+              border: "1px solid rgba(184,149,162,0.3)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              cursor: "pointer",
+              zIndex: 5,
+              fontSize: "1.5rem",
+              color: "#b07a8c",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ‹
+          </button>
+
+          {/* Слайды с видео */}
+          <div
+            style={{
+              overflow: "hidden",
+              borderRadius: "24px",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+              background: "#000", // чёрный фон на случай, если видео не загрузилось
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                transition: "transform 0.5s ease",
+                transform: `translateX(-${themeSlide * 100}%)`,
+              }}
+            >
+              {/* FREE видео */}
+              <div style={{ flex: "0 0 100%", position: "relative" }}>
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                >
+                  <source src="/videos/free-demo.mp4" type="video/mp4" />
+                  Ваш браузер не поддерживает видео.
+                </video>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "20px",
+                    left: "20px",
+                    background: "rgba(176,122,140,0.9)",
+                    color: "white",
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    backdropFilter: "blur(5px)",
+                  }}
+                >
+                  FREE
+                </div>
+              </div>
+
+              {/* PRO видео */}
+              <div style={{ flex: "0 0 100%", position: "relative" }}>
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                >
+                  <source src="/videos/pro-demo.mp4" type="video/mp4" />
+                  Ваш браузер не поддерживает видео.
+                </video>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "20px",
+                    right: "20px",
+                    background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
+                    color: "#4a2e38",
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    boxShadow: "0 4px 10px rgba(201,169,110,0.5)",
+                  }}
+                >
+                  PRO
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Стрелка вправо */}
+          <button
+            onClick={nextThemeSlide}
+            style={{
+              position: "absolute",
+              right: "0",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "white",
+              border: "1px solid rgba(184,149,162,0.3)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              cursor: "pointer",
+              zIndex: 5,
+              fontSize: "1.5rem",
+              color: "#b07a8c",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Индикаторы */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "12px",
+            marginTop: "20px",
+          }}
+        >
+          <div
+            onClick={() => setThemeSlide(0)}
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              background:
+                themeSlide === 0 ? "#b07a8c" : "rgba(184,149,162,0.3)",
+              cursor: "pointer",
+              transition: "background 0.3s",
+            }}
+          />
+          <div
+            onClick={() => setThemeSlide(1)}
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              background:
+                themeSlide === 1 ? "#c9a96e" : "rgba(184,149,162,0.3)",
+              cursor: "pointer",
+              transition: "background 0.3s",
+            }}
+          />
+        </div>
       </div>
 
       {/* Как это работает */}
       <div
         className="reveal-on-scroll"
         style={{
-          padding: "100px 20px",
+          padding: "60px 20px",
           textAlign: "center",
           position: "relative",
           zIndex: 1,
+          background: "rgba(255,240,244,0.2)",
         }}
       >
-        <h2 className="section-title" style={{ marginBottom: "60px" }}>
+        <h2 className="section-title" style={{ marginBottom: "40px" }}>
           Как это работает
         </h2>
         <div
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: "32px",
+            gap: "24px",
             flexWrap: "wrap",
           }}
         >
@@ -321,7 +485,7 @@ export default function HomePage() {
                 className="glass-card"
                 style={{
                   width: "280px",
-                  padding: "40px 24px",
+                  padding: "30px 20px",
                   background: "rgba(255,255,255,0.6)",
                   backdropFilter: "blur(20px)",
                   borderRadius: "24px",
@@ -332,15 +496,15 @@ export default function HomePage() {
               >
                 <div
                   style={{
-                    width: "72px",
-                    height: "72px",
+                    width: "64px",
+                    height: "64px",
                     background: "linear-gradient(135deg, #f8c3d3, #e4b5c6)",
                     borderRadius: "50%",
-                    margin: "0 auto 24px",
+                    margin: "0 auto 20px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "2rem",
+                    fontSize: "1.8rem",
                     fontWeight: 700,
                     color: "#4a2e38",
                   }}
@@ -351,7 +515,7 @@ export default function HomePage() {
                   style={{
                     fontWeight: 600,
                     color: "#5c4b56",
-                    marginBottom: "12px",
+                    marginBottom: "8px",
                   }}
                 >
                   {step}
@@ -359,7 +523,7 @@ export default function HomePage() {
                 <p
                   style={{
                     color: "#8b6e7a",
-                    fontSize: "0.95rem",
+                    fontSize: "0.9rem",
                     lineHeight: 1.5,
                   }}
                 >
@@ -379,21 +543,21 @@ export default function HomePage() {
       <div
         className="reveal-on-scroll"
         style={{
-          padding: "100px 20px",
+          padding: "60px 20px",
           textAlign: "center",
-          background: "rgba(255,240,244,0.2)",
+          background: "white",
           position: "relative",
           zIndex: 1,
         }}
       >
-        <h2 className="section-title" style={{ marginBottom: "60px" }}>
+        <h2 className="section-title" style={{ marginBottom: "40px" }}>
           Возможности
         </h2>
         <div
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: "32px",
+            gap: "24px",
             flexWrap: "wrap",
           }}
         >
@@ -408,7 +572,7 @@ export default function HomePage() {
               className="feature-card"
               style={{
                 width: "250px",
-                padding: "32px 24px",
+                padding: "30px 20px",
                 background: "white",
                 borderRadius: "20px",
                 boxShadow: "0 4px 16px rgba(160,120,135,0.08)",
@@ -447,104 +611,23 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Примеры сайтов */}
-      <div
-        className="reveal-on-scroll"
-        style={{
-          padding: "100px 20px",
-          textAlign: "center",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <h2 className="section-title" style={{ marginBottom: "60px" }}>
-          Живой пример
-        </h2>
-        <div
-          style={{
-            maxWidth: "800px",
-            margin: "0 auto",
-            borderRadius: "24px",
-            overflow: "hidden",
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.15)",
-          }}
-        >
-          <img
-            src="/beauty-star-example.png"
-            alt="Пример сайта Beauty Star"
-            style={{ width: "100%", height: "auto", display: "block" }}
-          />
-        </div>
-        <div style={{ marginTop: "40px" }}>
-          <Link
-            href="https://atamanovpetr.github.io/Portfolio/"
-            target="_blank"
-            className="pulse-button"
-            style={{
-              display: "inline-block",
-              padding: "14px 32px",
-              fontSize: "1rem",
-              fontWeight: 600,
-              background: "transparent",
-              border: "2px solid #b07a8c",
-              color: "#b07a8c",
-              borderRadius: "50px",
-              textDecoration: "none",
-            }}
-          >
-            Смотреть больше работ
-          </Link>
-        </div>
-      </div>
-
       {/* Отзывы (горизонтальная карусель) */}
-      {/* Отзывы */}
       <div
         className="reveal-on-scroll"
         style={{
-          padding: "100px 20px",
+          padding: "60px 20px",
           textAlign: "center",
           background: "rgba(255,240,244,0.2)",
           position: "relative",
           zIndex: 1,
         }}
       >
-        <h2 className="section-title" style={{ marginBottom: "60px" }}>
+        <h2 className="section-title" style={{ marginBottom: "40px" }}>
           Отзывы
         </h2>
         <div
           style={{ position: "relative", maxWidth: "700px", margin: "0 auto" }}
         >
-          {/* Стрелка влево */}
-          <button
-            onClick={() => {
-              const slider = document.querySelector(".reviews-slider");
-              if (slider) slider.scrollBy({ left: -320, behavior: "smooth" });
-            }}
-            style={{
-              position: "absolute",
-              left: "-50px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              background: "white",
-              border: "1px solid rgba(184,149,162,0.3)",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              cursor: "pointer",
-              zIndex: 5,
-              fontSize: "1.5rem",
-              color: "#b07a8c",
-              display: "none", // скрываем по умолчанию, покажем на десктопе через CSS
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            className="review-arrow desktop-only"
-          >
-            ‹
-          </button>
-          {/* Контейнер слайдов */}
           <div
             className="reviews-slider"
             style={{
@@ -577,7 +660,7 @@ export default function HomePage() {
                 style={{
                   flex: "0 0 300px",
                   scrollSnapAlign: "start",
-                  padding: "32px 24px",
+                  padding: "30px 24px",
                   background: "rgba(255,255,255,0.7)",
                   backdropFilter: "blur(15px)",
                   borderRadius: "20px",
@@ -602,43 +685,15 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          {/* Стрелка вправо */}
-          <button
-            onClick={() => {
-              const slider = document.querySelector(".reviews-slider");
-              if (slider) slider.scrollBy({ left: 320, behavior: "smooth" });
-            }}
-            style={{
-              position: "absolute",
-              right: "-50px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              background: "white",
-              border: "1px solid rgba(184,149,162,0.3)",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              cursor: "pointer",
-              zIndex: 5,
-              fontSize: "1.5rem",
-              color: "#b07a8c",
-              display: "none",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            className="review-arrow desktop-only"
-          >
-            ›
-          </button>
         </div>
       </div>
+
       {/* Призыв к регистрации */}
       {!userId && (
         <div
           className="reveal-on-scroll"
           style={{
-            padding: "100px 20px",
+            padding: "60px 20px",
             textAlign: "center",
             position: "relative",
             zIndex: 1,
@@ -651,7 +706,7 @@ export default function HomePage() {
           <p
             style={{
               color: "#8b6e7a",
-              marginBottom: "48px",
+              marginBottom: "32px",
               fontSize: "1.1rem",
             }}
           >
@@ -681,15 +736,20 @@ export default function HomePage() {
       {userId && (
         <div
           ref={formRef}
-          className="container"
           style={{
-            paddingTop: "80px",
-            paddingBottom: "80px",
+            maxWidth: "1000px",
+            margin: "0 auto",
+            padding: "60px 20px",
             position: "relative",
             zIndex: 1,
           }}
         >
-          <h1 className="title">Создай сайт-визитку</h1>
+          <h1
+            className="title"
+            style={{ textAlign: "center", marginBottom: "30px" }}
+          >
+            Создай сайт-визитку
+          </h1>
           <SiteForm userId={userId} onGenerate={handleGenerate} />
           {success && (
             <div
@@ -788,7 +848,6 @@ export default function HomePage() {
           bottom: -20px;
         }
 
-        /* Плавные ховеры */
         .glass-card {
           transition:
             transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -809,17 +868,6 @@ export default function HomePage() {
         .feature-card:hover {
           transform: translateY(-6px);
           box-shadow: 0 16px 40px rgba(160, 120, 135, 0.2);
-        }
-
-        .site-example {
-          transition:
-            transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            box-shadow 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          will-change: transform, box-shadow;
-        }
-        .site-example:hover {
-          transform: scale(1.02);
-          box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
         }
 
         .pulse-button {
@@ -861,19 +909,44 @@ export default function HomePage() {
           transform: translateY(0);
         }
 
-        /* показывать стрелки отзывов только на десктопах */
-        @media (min-width: 768px) {
-          .desktop-only {
-            display: flex !important;
-          }
-        }
-
         .reviews-slider::-webkit-scrollbar {
           display: none;
         }
         .reviews-slider {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+          .reveal-on-scroll {
+            padding-top: 40px !important;
+            padding-bottom: 40px !important;
+          }
+          .glass-card,
+          .feature-card {
+            width: 100% !important;
+          }
+          header {
+            padding: 8px 16px !important;
+          }
+          nav {
+            gap: 8px !important;
+          }
+          .title {
+            font-size: 1.8rem !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          header {
+            flex-direction: column;
+            gap: 8px;
+          }
+          nav {
+            justify-content: center;
+            width: 100%;
+          }
         }
       `}</style>
     </main>

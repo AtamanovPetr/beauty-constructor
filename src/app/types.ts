@@ -8,8 +8,8 @@ export interface ServiceItem {
 export interface FormData {
   name: string;
   phrase: string;
-  skills: string; // оставим для совместимости с БД
-  services: ServiceItem[]; // новое поле для UI
+  skills: string;
+  services: ServiceItem[];
   logo: string;
   inst: string;
   phone: string;
@@ -17,6 +17,7 @@ export interface FormData {
   reviews: string;
   address: string;
   gallery: string;
-  metaTitle?: string;
-  metaDescription?: string;
+  metaTitle: string;
+  metaDescription: string;
+  heroSlider?: string; // <-- обязательно
 }

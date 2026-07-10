@@ -76,13 +76,21 @@ const DEFAULT_FORM: FormData = {
     "https://i.ibb.co/chQGX64X/photo4.webp",
   metaTitle: "",
   metaDescription: "",
+  heroSlider:
+    "https://i.ibb.co/1w60YPY/photo1.webp|" +
+    "https://i.ibb.co/xt17YjrG/photo2.webp|" +
+    "https://i.ibb.co/JWg4Dm1X/photo3.webp",
 };
 
 function loadDraft(): FormData {
   if (typeof window === "undefined") return DEFAULT_FORM;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved) as FormData;
+    if (saved) {
+      const parsed = JSON.parse(saved) as Partial<FormData>;
+      // Сливаем с DEFAULT_FORM, чтобы новые поля всегда были
+      return { ...DEFAULT_FORM, ...parsed };
+    }
   } catch {}
   return DEFAULT_FORM;
 }
@@ -90,17 +98,24 @@ function loadDraft(): FormData {
 export default function SiteForm({ userId, onGenerate }: Props) {
   const [form, setForm] = useState<FormData>(loadDraft);
   const [saving, setSaving] = useState(false);
-
-  // Заглушка тарифа (для разработки)
-  const [testPlan, setTestPlan] = useState<"pro" | "free" | "">("");
-
-  // Определяем, является ли текущий режим PRO (по заглушке, иначе считаем PRO)
-  const isPro = testPlan === "free" ? false : true;
-  const maxServices = isPro ? 100 : 3; // для FREE максимум 3 услуги
+  const [isPro, setIsPro] = useState(false);
+  const [planLoaded, setPlanLoaded] = useState(false);
+  const maxServices = isPro ? 100 : 3;
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
   }, [form]);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`/api/user?firebaseUid=${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setIsPro(data.plan === "PRO");
+        setPlanLoaded(true);
+      })
+      .catch(() => setPlanLoaded(true));
+  }, [userId]);
 
   const addService = () => {
     if (!isPro && form.services.length >= maxServices) {
@@ -151,10 +166,7 @@ export default function SiteForm({ userId, onGenerate }: Props) {
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(testPlan ? { "x-test-plan": testPlan } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -177,42 +189,124 @@ export default function SiteForm({ userId, onGenerate }: Props) {
     }
   }
 
+  if (!planLoaded) return <div className="container">Загрузка...</div>;
+
   return (
     <div>
       <form className="constructor-form" onSubmit={handleSubmit}>
-        {/* Заглушка тарифов (видна только при разработке) */}
-        {process.env.NODE_ENV === "development" && (
-          <div
-            style={{
-              margin: "10px 0",
-              padding: "10px",
-              background: "#fff3cd",
-              borderRadius: "8px",
-            }}
-          >
-            <label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>
-              🧪 Заглушка тарифа (только для разработки):
-            </label>
-            <select
-              value={testPlan}
-              onChange={(e) => setTestPlan(e.target.value as any)}
-              style={{ marginLeft: "10px", padding: "4px 8px" }}
-            >
-              <option value="">Реальный план (по умолчанию PRO)</option>
-              <option value="pro">PRO (принудительно)</option>
-              <option value="free">FREE (принудительно)</option>
-            </select>
+        {/* 📸 Слайдер в шапке (только PRO) */}
+        {isPro && (
+          <fieldset className="form-section">
+            <legend className="section-title">
+              📸 Фото для шапки (слайдер) — до 3 шт.
+            </legend>
+            <div className="form-group">
+              <label>Загрузить фото для слайд-шоу на первом экране</label>
+              <label className="file-upload-label">
+                <span>🖼️</span> Добавить фото
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const files = e.target.files;
+                    if (!files?.length) return;
+                    const fd = new FormData();
+                    for (let i = 0; i < files.length; i++)
+                      fd.append("files", files[i]);
+                    const res = await fetch("/api/upload", {
+                      method: "POST",
+                      body: fd,
+                    });
+                    const data = await res.json();
+                    if (data.urls) {
+                      const existing = form.heroSlider
+                        ? form.heroSlider.split("|").filter(Boolean)
+                        : [];
+                      const newUrls = data.urls;
+                      const combined = [...existing, ...newUrls].slice(0, 3);
+                      setForm((prev) => ({
+                        ...prev,
+                        heroSlider: combined.join("|"),
+                      }));
+                    }
+                  }}
+                />
+              </label>
+            </div>
+            {form.heroSlider && (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                {form.heroSlider
+                  .split("|")
+                  .filter(Boolean)
+                  .map((url, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        position: "relative",
+                        width: "100px",
+                        height: "100px",
+                      }}
+                    >
+                      <img
+                        src={url}
+                        alt={`Слайд ${idx + 1}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const urls = form
+                            .heroSlider!.split("|")
+                            .filter(Boolean);
+                          urls.splice(idx, 1);
+                          setForm((prev) => ({
+                            ...prev,
+                            heroSlider: urls.join("|"),
+                          }));
+                        }}
+                        style={{
+                          position: "absolute",
+                          top: "-8px",
+                          right: "-8px",
+                          background: "#ef4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
             <p
-              style={{
-                margin: "8px 0 0",
-                fontSize: "0.8rem",
-                color: "#856404",
-              }}
+              style={{ fontSize: "0.8rem", color: "#8b6e7a", marginTop: "6px" }}
             >
-              Сейчас форма в режиме: <strong>{isPro ? "PRO" : "FREE"}</strong>.{" "}
-              {!isPro && "Ограничения: 3 услуги, без галереи, с брендингом."}
+              Рекомендуются горизонтальные фото. Если не загружено ни одного, в
+              шапке будет только логотип.
             </p>
-          </div>
+          </fieldset>
         )}
 
         {/* Основная информация */}
@@ -232,71 +326,75 @@ export default function SiteForm({ userId, onGenerate }: Props) {
               onChange={(e) => setForm({ ...form, phrase: e.target.value })}
             />
           </div>
-          <div className="form-group">
-            <label>Логотип</label>
-            <label className="file-upload-label">
-              <span>📁</span> Загрузить логотип
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const fd = new FormData();
-                  fd.append("files", file);
-                  const res = await fetch("/api/upload", {
-                    method: "POST",
-                    body: fd,
-                  });
-                  const data = await res.json();
-                  if (data.urls?.length) {
-                    setForm((prev) => ({ ...prev, logo: data.urls[0] }));
-                  }
-                }}
-              />
-            </label>
-            {form.logo && (
-              <div
-                style={{
-                  position: "relative",
-                  display: "inline-block",
-                  marginTop: "10px",
-                }}
-              >
-                <img
-                  src={form.logo}
-                  alt="Логотип"
-                  style={{
-                    width: "80px",
-                    height: "80px",
-                    objectFit: "cover",
-                    borderRadius: "8px",
+
+          {!isPro && (
+            <div className="form-group">
+              <label>Логотип</label>
+              <label className="file-upload-label">
+                <span>📁</span> Загрузить логотип
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fd = new FormData();
+                    fd.append("files", file);
+                    const res = await fetch("/api/upload", {
+                      method: "POST",
+                      body: fd,
+                    });
+                    const data = await res.json();
+                    if (data.urls?.length) {
+                      setForm((prev) => ({ ...prev, logo: data.urls[0] }));
+                    }
                   }}
                 />
-                <button
-                  onClick={() => setForm((prev) => ({ ...prev, logo: "" }))}
+              </label>
+              {form.logo && (
+                <div
                   style={{
-                    position: "absolute",
-                    top: "-8px",
-                    right: "-8px",
-                    background: "#ef4444",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "20px",
-                    height: "20px",
-                    fontSize: "12px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    position: "relative",
+                    display: "inline-block",
+                    marginTop: "10px",
                   }}
                 >
-                  ×
-                </button>
-              </div>
-            )}
-          </div>
+                  <img
+                    src={form.logo}
+                    alt="Логотип"
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, logo: "" }))}
+                    style={{
+                      position: "absolute",
+                      top: "-8px",
+                      right: "-8px",
+                      background: "#ef4444",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: "20px",
+                      height: "20px",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </fieldset>
 
         {/* Услуги – карточки */}
@@ -477,8 +575,8 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           )}
         </fieldset>
 
-        {/* Наши работы (только для PRO) */}
-        {isPro && (
+        {/* Галерея (только PRO) */}
+        {isPro ? (
           <fieldset className="form-section">
             <legend className="section-title">Наши работы</legend>
             <div className="form-group">
@@ -545,6 +643,7 @@ export default function SiteForm({ userId, onGenerate }: Props) {
                         }}
                       />
                       <button
+                        type="button"
                         onClick={() => {
                           const urls = form.gallery.split("|").filter(Boolean);
                           urls.splice(idx, 1);
@@ -577,9 +676,7 @@ export default function SiteForm({ userId, onGenerate }: Props) {
               </div>
             )}
           </fieldset>
-        )}
-
-        {!isPro && (
+        ) : (
           <fieldset
             className="form-section"
             style={{ opacity: 0.7, background: "#f9f9f9" }}
@@ -642,7 +739,6 @@ export default function SiteForm({ userId, onGenerate }: Props) {
           </div>
         </fieldset>
 
-        {/* Напоминание о брендинге для FREE */}
         {!isPro && (
           <div
             style={{

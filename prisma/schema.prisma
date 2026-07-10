@@ -27,6 +27,7 @@ model Site {
   domain String? @unique
   metaTitle       String?
   metaDescription String?
+  heroSlider   String?   // новое поле (URL через |)
 }
 
 model User {

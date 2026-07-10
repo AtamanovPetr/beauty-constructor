@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import ConfirmModal from "@/components/ConfirmModal";
 import toast from "react-hot-toast";
-
+import Header from "@/components/Header";
 interface Site {
   id: string;
   title: string;
@@ -24,8 +24,17 @@ export default function DashboardPage() {
   const [userLimit, setUserLimit] = useState(1);
   const [planLoading, setPlanLoading] = useState(false);
 
-  // ➕ Заглушка тарифов
-  const [testPlan, setTestPlan] = useState<"pro" | "free" | "">("");
+  // Плавающие частицы для фона
+  const [particles, setParticles] = useState<
+    Array<{
+      id: number;
+      left: string;
+      animationDelay: string;
+      animationDuration: string;
+      width: string;
+      height: string;
+    }>
+  >([]);
 
   useEffect(() => {
     if (!userId) return;
@@ -55,12 +64,17 @@ export default function DashboardPage() {
       .catch(console.error);
   }, [userId]);
 
-  // Вычисляем отображаемый тариф и лимит с учётом заглушки
-  const displayPlan =
-    testPlan === "pro" ? "PRO" : testPlan === "free" ? "FREE" : userPlan;
-  const displayLimit =
-    testPlan === "pro" ? 5 : testPlan === "free" ? 1 : userLimit;
-  const limitReached = sites.length >= displayLimit;
+  useEffect(() => {
+    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      animationDelay: `${Math.random() * 15}s`,
+      animationDuration: `${15 + Math.random() * 20}s`,
+      width: `${4 + Math.random() * 6}px`,
+      height: `${4 + Math.random() * 6}px`,
+    }));
+    setParticles(newParticles);
+  }, []);
 
   const handlePublish = async (siteId: string) => {
     await fetch("/api/sites/publish", {
@@ -89,12 +103,35 @@ export default function DashboardPage() {
     if (res.ok) {
       setUserPlan("PRO");
       setUserLimit(5);
-      toast.success("Тариф обновлён до PRO! (заглушка)");
+      toast.success("Тариф обновлён до PRO!");
     } else {
       toast.error("Не удалось обновить тариф");
     }
     setPlanLoading(false);
   };
+
+  const handleDowngrade = async () => {
+    setPlanLoading(true);
+    const res = await fetch("/api/user", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firebaseUid: userId,
+        plan: "FREE",
+        sitesLimit: 1,
+      }),
+    });
+    if (res.ok) {
+      setUserPlan("FREE");
+      setUserLimit(1);
+      toast.success("Тариф возвращён на FREE");
+    } else {
+      toast.error("Не удалось обновить тариф");
+    }
+    setPlanLoading(false);
+  };
+
+  const limitReached = sites.length >= userLimit;
 
   if (!userId)
     return (
@@ -110,366 +147,551 @@ export default function DashboardPage() {
     );
 
   return (
-    <main className="container">
-      <h1 className="title">Мои сайты</h1>
-
-      {/* Блок с тарифом */}
+    <main style={{ position: "relative", minHeight: "100vh" }}>
+      {/* Фоновые частицы */}
       <div
         style={{
-          background: "white",
-          borderRadius: "20px",
-          padding: "24px",
-          marginBottom: "32px",
-          boxShadow: "0 4px 12px rgba(160,120,135,0.1)",
-          border: "1px solid rgba(184,149,162,0.2)",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: 0,
+          overflow: "hidden",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "12px",
-          }}
-        >
-          <div>
-            <p style={{ margin: 0, fontWeight: 600, fontSize: "1.1rem" }}>
-              Ваш тариф:{" "}
-              <span
-                style={{
-                  color: displayPlan === "FREE" ? "#b07a8c" : "#4a9c6c",
-                  background:
-                    displayPlan === "FREE"
-                      ? "rgba(176,122,140,0.15)"
-                      : "rgba(74,156,108,0.15)",
-                  padding: "2px 12px",
-                  borderRadius: "20px",
-                  fontSize: "0.9rem",
-                }}
-              >
-                {displayPlan}
-              </span>
-            </p>
-            <p
-              style={{
-                margin: "4px 0 0",
-                fontSize: "0.9rem",
-                color: "#8b6e7a",
-              }}
-            >
-              Использовано сайтов: {sites.length} / {displayLimit}
-              {limitReached && displayPlan === "FREE" && (
-                <span
-                  style={{
-                    color: "#ef4444",
-                    marginLeft: "8px",
-                    fontWeight: 600,
-                  }}
-                >
-                  Лимит исчерпан
-                </span>
-              )}
-            </p>
-          </div>
-          {displayPlan === "FREE" && (
-            <Link
-              href="/pricing"
-              className="submit-btn"
-              style={{
-                background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
-                color: "#4a2e38",
-                fontWeight: 600,
-              }}
-            >
-              Перейти на PRO
-            </Link>
-          )}
-          {displayPlan === "PRO" && (
-            <button
-              className="submit-btn"
-              style={{
-                padding: "8px 20px",
-                fontSize: "0.9rem",
-                background: "transparent",
-                border: "1px solid #b07a8c",
-                color: "#b07a8c",
-              }}
-              onClick={async () => {
-                setPlanLoading(true);
-                const res = await fetch("/api/user", {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    firebaseUid: userId,
-                    plan: "FREE",
-                    sitesLimit: 1,
-                  }),
-                });
-                if (res.ok) {
-                  setUserPlan("FREE");
-                  setUserLimit(1);
-                  toast.success("Тариф возвращён на FREE");
-                } else {
-                  toast.error("Не удалось обновить тариф");
-                }
-                setPlanLoading(false);
-              }}
-              disabled={planLoading}
-            >
-              {planLoading ? "Обновляем..." : "Вернуться на FREE"}
-            </button>
-          )}
-        </div>
-
-        {/* Преимущества PRO (показываем красиво) */}
-        <div
-          style={{
-            marginTop: "16px",
-            background: "rgba(255,240,244,0.5)",
-            borderRadius: "12px",
-            padding: "16px",
-            display: "flex",
-            gap: "20px",
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.2rem" }}>✨</span>
-            <span style={{ color: "#5c4b56", fontWeight: 500 }}>
-              Свой домен
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.2rem" }}>📈</span>
-            <span style={{ color: "#5c4b56", fontWeight: 500 }}>
-              До 5 сайтов
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.2rem" }}>🎨</span>
-            <span style={{ color: "#5c4b56", fontWeight: 500 }}>
-              Без брендинга
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.2rem" }}>💬</span>
-            <span style={{ color: "#5c4b56", fontWeight: 500 }}>Поддержка</span>
-          </div>
-        </div>
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            className="particle"
+            style={{
+              left: p.left,
+              animationDelay: p.animationDelay,
+              animationDuration: p.animationDuration,
+              width: p.width,
+              height: p.height,
+            }}
+          />
+        ))}
       </div>
 
-      {/* ➕ Заглушка тарифов */}
-      {process.env.NODE_ENV === "development" && (
-        <div
-          style={{
-            margin: "10px 0 30px",
-            padding: "10px",
-            background: "#fff3cd",
-            borderRadius: "8px",
-          }}
-        >
-          <label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>
-            🧪 Заглушка тарифа (только для разработки):
-          </label>
-          <select
-            value={testPlan}
-            onChange={(e) => setTestPlan(e.target.value as any)}
-            style={{ marginLeft: "10px", padding: "4px 8px" }}
-          >
-            <option value="">Реальный план из БД</option>
-            <option value="pro">PRO (принудительно)</option>
-            <option value="free">FREE (принудительно)</option>
-          </select>
-          <p
-            style={{ margin: "8px 0 0", fontSize: "0.8rem", color: "#856404" }}
-          >
-            Меняет только отображение тарифа и лимитов. Реальный план в базе не
-            изменяется.
-          </p>
-        </div>
-      )}
+      <Header />
 
+      {/* Основной контент (отступ под шапку) */}
       <div
         style={{
-          display: "flex",
-          gap: "16px",
-          marginBottom: "30px",
-          alignItems: "center",
-          flexWrap: "wrap",
+          paddingTop: "100px",
+          paddingBottom: "80px",
+          maxWidth: "1100px",
+          margin: "0 auto",
+          paddingLeft: "20px",
+          paddingRight: "20px",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <Link
-          href="/"
-          className="submit-btn"
+        <h1
           style={{
-            padding: "8px 20px",
-            fontSize: "0.9rem",
-            background: "transparent",
-            border: "1px solid #b07a8c",
-            color: "#b07a8c",
+            fontSize: "2.8rem",
+            fontWeight: 800,
+            background:
+              "linear-gradient(135deg, #6d4c5e, #b07a8c, #c9a96e, #b07a8c, #6d4c5e)",
+            backgroundSize: "200% auto",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            marginBottom: "32px",
+            animation: "textGradient 3s linear infinite",
           }}
         >
-          ← На главную
-        </Link>
+          Мои сайты
+        </h1>
 
-        {!limitReached ? (
-          <Link
-            href="/"
-            className="submit-btn"
-            style={{ padding: "8px 20px", fontSize: "0.9rem" }}
+        {/* Блок с тарифом */}
+        <div
+          className="glass-card"
+          style={{
+            background: "rgba(255,255,255,0.6)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "24px",
+            padding: "30px",
+            marginBottom: "32px",
+            border: "1px solid rgba(255,255,255,0.3)",
+            boxShadow: "0 8px 32px rgba(160,120,135,0.1)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "16px",
+            }}
           >
-            + Создать новый
-          </Link>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <button
-              className="submit-btn"
-              disabled
-              style={{
-                padding: "8px 20px",
-                fontSize: "0.9rem",
-                opacity: 0.5,
-                cursor: "not-allowed",
-              }}
-              title={
-                displayPlan === "FREE"
-                  ? "Лимит сайтов исчерпан. Удалите ненужный сайт или перейдите на PRO."
-                  : "Достигнут лимит сайтов для вашего тарифа."
-              }
-            >
-              + Создать новый (лимит исчерпан)
-            </button>
-            {displayPlan === "FREE" && (
-              <Link
-                href="/pricing"
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: "1.2rem" }}>
+                Ваш тариф:{" "}
+                <span
+                  style={{
+                    color: userPlan === "FREE" ? "#b07a8c" : "#4a9c6c",
+                    background:
+                      userPlan === "FREE"
+                        ? "rgba(176,122,140,0.15)"
+                        : "rgba(74,156,108,0.15)",
+                    padding: "4px 16px",
+                    borderRadius: "20px",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  {userPlan}
+                </span>
+              </p>
+              <p
                 style={{
-                  fontSize: "0.8rem",
-                  color: "#c9a96e",
-                  textDecoration: "underline",
-                  textAlign: "center",
+                  margin: "8px 0 0",
+                  fontSize: "0.95rem",
+                  color: "#8b6e7a",
                 }}
               >
-                Увеличить лимит → PRO
+                Использовано сайтов: {sites.length} / {userLimit}
+                {limitReached && userPlan === "FREE" && (
+                  <span
+                    style={{
+                      color: "#ef4444",
+                      marginLeft: "8px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Лимит исчерпан
+                  </span>
+                )}
+              </p>
+            </div>
+
+            {userPlan === "FREE" ? (
+              <button
+                onClick={handleUpgrade}
+                disabled={planLoading}
+                className="pulse-button"
+                style={{
+                  padding: "12px 28px",
+                  fontSize: "1rem",
+                  fontWeight: 700,
+                  background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
+                  color: "#4a2e38",
+                  borderRadius: "50px",
+                  boxShadow: "0 8px 24px rgba(201,169,110,0.4)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {planLoading ? "Обновляем..." : "Перейти на PRO"}
+              </button>
+            ) : (
+              <button
+                onClick={handleDowngrade}
+                disabled={planLoading}
+                className="glass-button"
+                style={{
+                  padding: "12px 28px",
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  background: "rgba(255,255,255,0.6)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid #b07a8c",
+                  color: "#b07a8c",
+                  borderRadius: "50px",
+                  cursor: "pointer",
+                }}
+              >
+                {planLoading ? "Обновляем..." : "Вернуться на FREE"}
+              </button>
+            )}
+          </div>
+
+          {/* Преимущества PRO */}
+          <div
+            style={{
+              marginTop: "20px",
+              background: "rgba(255,240,244,0.4)",
+              borderRadius: "16px",
+              padding: "20px",
+              display: "flex",
+              gap: "24px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "1.3rem" }}>✨</span>
+              <span style={{ color: "#5c4b56", fontWeight: 500 }}>
+                Свой домен
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "1.3rem" }}>📈</span>
+              <span style={{ color: "#5c4b56", fontWeight: 500 }}>
+                До 5 сайтов
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "1.3rem" }}>🎨</span>
+              <span style={{ color: "#5c4b56", fontWeight: 500 }}>
+                Без брендинга
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "1.3rem" }}>💬</span>
+              <span style={{ color: "#5c4b56", fontWeight: 500 }}>
+                Поддержка
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Навигация */}
+        <div
+          style={{
+            display: "flex",
+            gap: "16px",
+            marginBottom: "40px",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <Link
+            href="/"
+            className="glass-button"
+            style={{
+              padding: "10px 24px",
+              fontSize: "0.95rem",
+              background: "rgba(255,255,255,0.6)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid #b07a8c",
+              color: "#b07a8c",
+              borderRadius: "50px",
+              textDecoration: "none",
+              fontWeight: 500,
+            }}
+          >
+            ← На главную
+          </Link>
+
+          {!limitReached ? (
+            <Link
+              href="/"
+              className="pulse-button"
+              style={{
+                padding: "10px 28px",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
+                color: "#4a2e38",
+                borderRadius: "50px",
+                textDecoration: "none",
+                boxShadow: "0 6px 20px rgba(201,169,110,0.3)",
+              }}
+            >
+              + Создать новый
+            </Link>
+          ) : (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+            >
+              <button
+                disabled
+                style={{
+                  padding: "10px 28px",
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  background: "rgba(255,255,255,0.4)",
+                  border: "1px solid rgba(184,149,162,0.3)",
+                  color: "#8b6e7a",
+                  borderRadius: "50px",
+                  cursor: "not-allowed",
+                  opacity: 0.6,
+                }}
+              >
+                + Создать новый (лимит исчерпан)
+              </button>
+              {userPlan === "FREE" && (
+                <Link
+                  href="/pricing"
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "#c9a96e",
+                    textDecoration: "underline",
+                    textAlign: "center",
+                  }}
+                >
+                  Увеличить лимит → PRO
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Список сайтов */}
+        {sites.length === 0 ? (
+          <div
+            className="glass-card"
+            style={{
+              background: "rgba(255,255,255,0.5)",
+              backdropFilter: "blur(15px)",
+              borderRadius: "24px",
+              padding: "60px 20px",
+              textAlign: "center",
+              border: "1px solid rgba(255,255,255,0.3)",
+              boxShadow: "0 8px 30px rgba(160,120,135,0.08)",
+            }}
+          >
+            <p style={{ color: "#8b6e7a", marginBottom: "20px" }}>
+              У вас пока нет сайтов.
+            </p>
+            {!limitReached && (
+              <Link
+                href="/"
+                className="pulse-button"
+                style={{
+                  display: "inline-block",
+                  padding: "14px 36px",
+                  fontWeight: 600,
+                  background: "linear-gradient(135deg, #c9a96e, #e0c78a)",
+                  color: "#4a2e38",
+                  borderRadius: "50px",
+                  textDecoration: "none",
+                  boxShadow: "0 8px 20px rgba(201,169,110,0.35)",
+                }}
+              >
+                Создать первый сайт
               </Link>
             )}
           </div>
-        )}
-      </div>
-
-      {sites.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px" }}>
-          <p style={{ color: "#8b6e7a", marginBottom: "16px" }}>
-            У вас пока нет сайтов.
-          </p>
-          {!limitReached && (
-            <Link
-              href="/"
-              className="submit-btn"
-              style={{ padding: "10px 24px" }}
-            >
-              Создать первый сайт
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="sites-grid">
-          {sites.map((site) => (
-            <div key={site.id} className="site-card">
-              <h3>{site.title}</h3>
-              <p className="slug">{site.slug}</p>
-              <div className="actions">
-                {site.published ? (
-                  <>
-                    <a
-                      href={`/s/${site.slug}`}
-                      target="_blank"
-                      className="btn btn-open"
-                    >
-                      Открыть
-                    </a>
-                    <button
-                      onClick={() =>
-                        navigator.clipboard.writeText(
-                          `${window.location.origin}/s/${site.slug}`,
-                        )
-                      }
-                      className="btn btn-copy"
-                    >
-                      Копировать
-                    </button>
-                    <Link href={`/edit/${site.id}`} className="btn btn-edit">
-                      Редактировать
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href={`/edit/${site.id}`} className="btn btn-edit">
-                      Редактировать
-                    </Link>
-                    <button
-                      onClick={() => handlePublish(site.id)}
-                      className="btn btn-publish"
-                    >
-                      Опубликовать
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => setDeleteTarget(site.id)}
-                  className="btn btn-delete"
-                >
-                  Удалить
-                </button>
-              </div>
-              {displayPlan === "PRO" && site.published && (
-                <div
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "24px",
+            }}
+          >
+            {sites.map((site) => (
+              <div
+                key={site.id}
+                className="glass-card"
+                style={{
+                  background: "rgba(255,255,255,0.55)",
+                  backdropFilter: "blur(15px)",
+                  borderRadius: "20px",
+                  padding: "24px",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  boxShadow: "0 4px 20px rgba(160,120,135,0.08)",
+                  transition:
+                    "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  willChange: "transform, box-shadow",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-6px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 20px 40px rgba(160, 120, 135, 0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 20px rgba(160,120,135,0.08)";
+                }}
+              >
+                <h3
                   style={{
-                    marginTop: "12px",
-                    display: "flex",
-                    gap: "8px",
-                    alignItems: "center",
+                    color: "#4a3f47",
+                    marginBottom: "4px",
+                    fontWeight: 700,
                   }}
                 >
-                  <input
+                  {site.title}
+                </h3>
+                <p
+                  style={{
+                    color: "#b07a8c",
+                    fontSize: "0.9rem",
+                    marginBottom: "16px",
+                  }}
+                >
+                  {site.slug}
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                    marginBottom:
+                      site.published && userPlan === "PRO" ? "16px" : "0",
+                  }}
+                >
+                  {site.published ? (
+                    <>
+                      <a
+                        href={`/s/${site.slug}`}
+                        target="_blank"
+                        className="glass-button"
+                        style={{
+                          padding: "8px 16px",
+                          fontSize: "0.85rem",
+                          background: "rgba(255,255,255,0.7)",
+                          backdropFilter: "blur(8px)",
+                          border: "1px solid #b07a8c",
+                          color: "#b07a8c",
+                          borderRadius: "50px",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Открыть
+                      </a>
+                      <button
+                        onClick={() =>
+                          navigator.clipboard.writeText(
+                            `${window.location.origin}/s/${site.slug}`,
+                          )
+                        }
+                        className="glass-button"
+                        style={{
+                          padding: "8px 16px",
+                          fontSize: "0.85rem",
+                          background: "rgba(255,255,255,0.7)",
+                          backdropFilter: "blur(8px)",
+                          border: "1px solid #b07a8c",
+                          color: "#b07a8c",
+                          borderRadius: "50px",
+                          cursor: "pointer",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Копировать
+                      </button>
+                      <Link
+                        href={`/edit/${site.id}`}
+                        className="glass-button"
+                        style={{
+                          padding: "8px 16px",
+                          fontSize: "0.85rem",
+                          background: "rgba(255,255,255,0.7)",
+                          backdropFilter: "blur(8px)",
+                          border: "1px solid #b07a8c",
+                          color: "#b07a8c",
+                          borderRadius: "50px",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Редактировать
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href={`/edit/${site.id}`}
+                        className="glass-button"
+                        style={{
+                          padding: "8px 16px",
+                          fontSize: "0.85rem",
+                          background: "rgba(255,255,255,0.7)",
+                          backdropFilter: "blur(8px)",
+                          border: "1px solid #b07a8c",
+                          color: "#b07a8c",
+                          borderRadius: "50px",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Редактировать
+                      </Link>
+                      <button
+                        onClick={() => handlePublish(site.id)}
+                        className="pulse-button"
+                        style={{
+                          padding: "8px 16px",
+                          fontSize: "0.85rem",
+                          fontWeight: 600,
+                          background:
+                            "linear-gradient(135deg, #c9a96e, #e0c78a)",
+                          color: "#4a2e38",
+                          borderRadius: "50px",
+                          border: "none",
+                          cursor: "pointer",
+                          boxShadow: "0 4px 12px rgba(201,169,110,0.3)",
+                        }}
+                      >
+                        Опубликовать
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setDeleteTarget(site.id)}
                     style={{
-                      flex: 1,
-                      padding: "6px 10px",
-                      borderRadius: "8px",
-                      border: "1px solid rgba(184,149,162,0.3)",
-                      background: "rgba(255,255,255,0.7)",
-                      fontSize: "0.9rem",
+                      padding: "8px 16px",
+                      fontSize: "0.85rem",
+                      background: "rgba(239,68,68,0.1)",
+                      border: "1px solid rgba(239,68,68,0.3)",
+                      color: "#ef4444",
+                      borderRadius: "50px",
+                      cursor: "pointer",
+                      fontWeight: 500,
                     }}
-                    placeholder="ваш-домен.ru"
-                    defaultValue={site.domain || ""}
-                    onBlur={async (e) => {
-                      const domain = e.target.value.trim();
-                      if (!domain) return;
-                      const res = await fetch("/api/sites/domain", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          siteId: site.id,
-                          userId,
-                          domain,
-                        }),
-                      });
-                      const data = await res.json();
-                      if (res.ok) {
-                        toast.success(
-                          "Домен сохранён! Настройте CNAME-запись.",
-                        );
-                      } else {
-                        toast.error(data.error || "Ошибка сохранения домена");
-                      }
-                    }}
-                  />
+                  >
+                    Удалить
+                  </button>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                {userPlan === "PRO" && site.published && (
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <input
+                      style={{
+                        flex: 1,
+                        padding: "8px 12px",
+                        borderRadius: "12px",
+                        border: "1px solid rgba(184,149,162,0.3)",
+                        background: "rgba(255,255,255,0.7)",
+                        fontSize: "0.9rem",
+                        outline: "none",
+                      }}
+                      placeholder="ваш-домен.ru"
+                      defaultValue={site.domain || ""}
+                      onBlur={async (e) => {
+                        const domain = e.target.value.trim();
+                        if (!domain) return;
+                        const res = await fetch("/api/sites/domain", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            siteId: site.id,
+                            userId,
+                            domain,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          toast.success(
+                            "Домен сохранён! Настройте CNAME-запись.",
+                          );
+                        } else {
+                          toast.error(data.error || "Ошибка сохранения домена");
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {deleteTarget && (
         <ConfirmModal
@@ -478,6 +700,59 @@ export default function DashboardPage() {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {/* Глобальные стили анимаций */}
+      <style jsx global>{`
+        @keyframes textGradient {
+          0% {
+            background-position: 0% center;
+          }
+          100% {
+            background-position: 200% center;
+          }
+        }
+        @keyframes float {
+          0% {
+            transform: translateY(0px) scale(1);
+          }
+          50% {
+            transform: translateY(-20px) scale(1.05);
+          }
+          100% {
+            transform: translateY(0px) scale(1);
+          }
+        }
+
+        .particle {
+          position: absolute;
+          background: rgba(184, 120, 140, 0.12);
+          border-radius: 50%;
+          animation: float linear infinite;
+          bottom: -20px;
+        }
+
+        .pulse-button {
+          transition:
+            transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          will-change: transform, box-shadow;
+        }
+        .pulse-button:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 16px 40px rgba(201, 169, 110, 0.6);
+        }
+
+        .glass-button {
+          transition:
+            transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          will-change: transform, box-shadow;
+        }
+        .glass-button:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 24px rgba(176, 122, 140, 0.4);
+        }
+      `}</style>
     </main>
   );
 }

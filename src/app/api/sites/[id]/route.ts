@@ -490,7 +490,6 @@ export async function PUT(
             <div class="contacts-decor-line"></div>
             <div class="contacts-list">
               ${address ? `<div class="contacts-item"><span class="item-label">Адрес:</span><p class="item-value">${escapeHtml(address)}</p></div>` : ""}
-              <div class="contacts-item"><span class="item-label">Режим работы:</span><p class="item-value">Ежедневно с 10:00 до 21:00</p></div>
               ${phone ? `<div class="contacts-item"><span class="item-label">Телефон:</span><a href="tel:${phone}" class="item-value phone-link">${escapeHtml(phone)}</a></div>` : ""}
             </div>
           </div>

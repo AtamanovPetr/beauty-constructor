@@ -592,7 +592,6 @@ export async function POST(request: Request) {
             <div class="contacts-decor-line"></div>
             <div class="contacts-list">
               ${payload.address ? `<div class="contacts-item"><span class="item-label">Адрес:</span><p class="item-value">${escapeHtml(payload.address)}</p></div>` : ""}
-              <div class="contacts-item"><span class="item-label">Режим работы:</span><p class="item-value">Ежедневно с 10:00 до 21:00</p></div>
               ${payload.phone ? `<div class="contacts-item"><span class="item-label">Телефон:</span><a href="tel:${payload.phone}" class="item-value phone-link">${escapeHtml(payload.phone)}</a></div>` : ""}
             </div>
           </div>

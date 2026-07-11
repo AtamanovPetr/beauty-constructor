@@ -724,13 +724,6 @@ export default function SiteForm({ userId, onGenerate }: Props) {
         <fieldset className="form-section">
           <legend className="section-title">Контакты</legend>
           <div className="form-group">
-            <label>Instagram</label>
-            <input
-              value={form.inst}
-              onChange={(e) => setForm({ ...form, inst: e.target.value })}
-            />
-          </div>
-          <div className="form-group">
             <label>Телефон</label>
             <input
               value={form.phone}

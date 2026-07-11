@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: beauty
+      POSTGRES_PASSWORD: strongpassword123
+      POSTGRES_DB: beauty_constructor
+    ports:
+      - "5432:5432"
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+volumes:
+  local_pgdata:

@@ -32,9 +32,7 @@ function stringToServices(str: string): ServiceItem[] {
 const STORAGE_KEY = "editSiteDraft";
 
 const DEFAULT_HERO_SLIDER =
-  "https://i.ibb.co/1w60YPY/photo1.webp|" +
-  "https://i.ibb.co/xt17YjrG/photo2.webp|" +
-  "https://i.ibb.co/JWg4Dm1X/photo3.webp";
+  "/defaults/hero1.webp|" + "/defaults/hero2.webp|" + "/defaults/hero3.webp";
 
 export default function EditPage() {
   const { userId } = useAuth();
@@ -99,9 +97,8 @@ export default function EditPage() {
           servicesArray = servicesArray.slice(0, 3);
         }
 
-        // heroSlider: если null/undefined → дефолтные; если "" → оставить ""
         let heroSlider = site.heroSlider;
-        if (heroSlider === null || heroSlider === undefined) {
+        if (!heroSlider || heroSlider.trim() === "") {
           heroSlider = DEFAULT_HERO_SLIDER;
         }
 

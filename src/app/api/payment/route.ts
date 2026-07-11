@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email } = body;
+    const { name, email } = body; // ← теперь получаем и имя, и email
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const VK_TOKEN = process.env.VK_ACCESS_TOKEN!;
     const VK_USER_ID = process.env.VK_USER_ID!;
 
-    const message = `🔥 Новая заявка на PRO!\nEmail: ${email}\nДата: ${new Date().toLocaleString()}`;
+    const message = `🔥 Новая заявка на PRO!\n👤 Имя: ${name || "не указано"}\n📧 Email: ${email}\n🕒 Дата: ${new Date().toLocaleString("ru-RU")}`;
 
     const vkRes = await fetch(`https://api.vk.com/method/messages.send`, {
       method: "POST",

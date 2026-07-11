@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ProModal from "@/components/ProModal";
 import Header from "@/components/Header";
+
 export default function PricingPage() {
   const [visible, setVisible] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -19,11 +20,11 @@ export default function PricingPage() {
   >([]);
   const [showProModal, setShowProModal] = useState(false);
 
-  const handleProSubmit = async (email: string) => {
+  const handleProSubmit = async (data: { name: string; email: string }) => {
     const res = await fetch("/api/payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(data),
     });
     if (res.ok) {
       alert("Спасибо! Мы свяжемся с вами в ближайшее время.");

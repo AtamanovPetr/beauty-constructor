@@ -1,10 +1,19 @@
 "use client";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { loginWithGoogle } from "@/firebase";
 
 export default function Header() {
   const { userId } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 600);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   return (
     <header
@@ -19,11 +28,12 @@ export default function Header() {
         borderBottom: "1px solid rgba(184,149,162,0.2)",
         padding: "12px 24px",
         display: "flex",
-        justifyContent: "space-between",
+        justifyContent: isMobile ? "center" : "space-between",
         alignItems: "center",
         flexWrap: "wrap",
         gap: "12px",
         boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+        flexDirection: isMobile ? "column" : "row",
       }}
     >
       <Link
@@ -47,6 +57,7 @@ export default function Header() {
           gap: "16px",
           alignItems: "center",
           flexWrap: "wrap",
+          justifyContent: "center",
         }}
       >
         <Link

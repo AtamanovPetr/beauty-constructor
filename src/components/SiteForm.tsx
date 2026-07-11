@@ -26,41 +26,41 @@ const DEFAULT_FORM: FormData = {
     {
       name: "Умная стрижка",
       price: "2 500 ₽",
-      image: "https://i.ibb.co/9mLzKm8R/service1.webp",
+      image: "/defaults/hero1.webp",
       desc: "Стрижка по форме роста волос, не требующая долгой укладки.",
     },
     {
       name: "Сложное окрашивание",
       price: "8 500 ₽",
-      image: "https://i.ibb.co/hxJXKdHS/service2.webp",
+      image: "/defaults/hero2.webp",
       desc: "Airtouch, Shatush, Balayage. Плавные переходы.",
     },
     {
       name: "Тонирование & Уход",
       price: "4 000 ₽",
-      image: "https://i.ibb.co/HfpJxpPk/service3.webp",
+      image: "/defaults/hero3.webp",
       desc: "Обновление цвета, придание блеска.",
     },
     {
       name: "Вечерняя укладка",
       price: "3 000 ₽",
-      image: "https://i.ibb.co/5xkCmK40/service5.webp",
+      image: "/defaults/hero4.webp",
       desc: "Элегантные локоны для особого вечера.",
     },
     {
       name: "Премиальный уход Absolute",
       price: "3 500 ₽",
-      image: "https://i.ibb.co/xt17YjrG/photo2.webp",
+      image: "/defaults/hero5.webp",
       desc: "Интенсивное восстановление на молекулярном уровне.",
     },
     {
       name: "Экспресс-укладка",
       price: "1 800 ₽",
-      image: "https://i.ibb.co/1w60YPY/photo1.webp",
+      image: "/defaults/hero6.webp",
       desc: "Быстрая сушка на брашинг.",
     },
   ],
-  logo: "https://i.ibb.co/1w60YPY/photo1.webp",
+  logo: "/defaults/hero1.webp",
   inst: "https://www.instagram.com/beauty.star",
   phone: "+7 (999) 123-45-67",
   style: "premium",
@@ -70,16 +70,14 @@ const DEFAULT_FORM: FormData = {
     "Ольга П.|Делала процедуру Absolute после долгого осветления. Волосы буквально ожили, стали мягкими и послушными. Мастер дала подробные рекомендации по домашнему уходу, и теперь я знаю, как сохранить результат надолго. Очень довольна!",
   address: "г. Москва, ул. Большая Спасская, д. 12",
   gallery:
-    "https://i.ibb.co/1w60YPY/photo1.webp|" +
-    "https://i.ibb.co/xt17YjrG/photo2.webp|" +
-    "https://i.ibb.co/JWg4Dm1X/photo3.webp|" +
-    "https://i.ibb.co/chQGX64X/photo4.webp",
+    "/defaults/hero4.webp|" +
+    "/defaults/hero5.webp|" +
+    "/defaults/hero6.webp|" +
+    "/defaults/hero7.webp",
   metaTitle: "",
   metaDescription: "",
   heroSlider:
-    "https://i.ibb.co/1w60YPY/photo1.webp|" +
-    "https://i.ibb.co/xt17YjrG/photo2.webp|" +
-    "https://i.ibb.co/JWg4Dm1X/photo3.webp",
+    "/defaults/hero1.webp|" + "/defaults/hero2.webp|" + "/defaults/hero3.webp",
 };
 
 function loadDraft(): FormData {
@@ -88,7 +86,6 @@ function loadDraft(): FormData {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved) as Partial<FormData>;
-      // Сливаем с DEFAULT_FORM, чтобы новые поля всегда были
       return { ...DEFAULT_FORM, ...parsed };
     }
   } catch {}

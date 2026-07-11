@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import ConfirmModal from "@/components/ConfirmModal";
+import ProModal from "@/components/ProModal";
 import toast from "react-hot-toast";
 import Header from "@/components/Header";
+
 interface Site {
   id: string;
   title: string;
@@ -23,6 +25,7 @@ export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState("FREE");
   const [userLimit, setUserLimit] = useState(1);
   const [planLoading, setPlanLoading] = useState(false);
+  const [showProModal, setShowProModal] = useState(false); // ← новое состояние
 
   // Плавающие частицы для фона
   const [particles, setParticles] = useState<
@@ -93,7 +96,23 @@ export default function DashboardPage() {
     setDeleteTarget(null);
   };
 
+  // Обработчик отправки заявки на PRO
+  const handleProSubmit = async (data: { name: string; email: string }) => {
+    const res = await fetch("/api/payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      toast.success("Заявка отправлена! Мы свяжемся с вами для активации PRO.");
+    } else {
+      toast.error("Ошибка отправки. Напишите мне в Telegram: @твой_ник");
+    }
+  };
+
   const handleUpgrade = async () => {
+    // Этот метод больше не используется для автоматического перехода,
+    // но оставлен, если ты захочешь активировать PRO вручную.
     setPlanLoading(true);
     const res = await fetch("/api/user", {
       method: "PATCH",
@@ -178,7 +197,7 @@ export default function DashboardPage() {
 
       <Header />
 
-      {/* Основной контент (отступ под шапку) */}
+      {/* Основной контент */}
       <div
         style={{
           paddingTop: "100px",
@@ -271,8 +290,7 @@ export default function DashboardPage() {
 
             {userPlan === "FREE" ? (
               <button
-                onClick={handleUpgrade}
-                disabled={planLoading}
+                onClick={() => setShowProModal(true)} // ← открывает модалку
                 className="pulse-button"
                 style={{
                   padding: "12px 28px",
@@ -286,7 +304,7 @@ export default function DashboardPage() {
                   cursor: "pointer",
                 }}
               >
-                {planLoading ? "Обновляем..." : "Перейти на PRO"}
+                Перейти на PRO
               </button>
             ) : (
               <button
@@ -700,6 +718,12 @@ export default function DashboardPage() {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      <ProModal
+        isOpen={showProModal}
+        onClose={() => setShowProModal(false)}
+        onSubmit={handleProSubmit}
+      />
 
       {/* Глобальные стили анимаций */}
       <style jsx global>{`

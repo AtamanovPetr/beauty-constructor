@@ -28,6 +28,7 @@ model Site {
   metaTitle       String?
   metaDescription String?
   heroSlider   String?   // новое поле (URL через |)
+  clientEmail   String?   // ← поле для email владельца сайта
 }
 
 model User {

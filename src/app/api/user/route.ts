@@ -65,6 +65,24 @@ export async function POST(request: Request) {
         email: email || null,
       },
     });
+
+    // ─── Уведомление в VK ─────────────────────
+    const VK_TOKEN = process.env.VK_ACCESS_TOKEN!;
+    const VK_USER_ID = process.env.VK_USER_ID!;
+
+    const message = `🆕 Новый пользователь!\n👤 Имя: ${name || "не указано"}\n📧 Email: ${email || "не указан"}\n🕒 Дата: ${new Date().toLocaleString("ru-RU")}`;
+
+    fetch(`https://api.vk.com/method/messages.send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        user_id: VK_USER_ID,
+        message: message,
+        access_token: VK_TOKEN,
+        v: "5.199",
+        random_id: Date.now().toString(),
+      }),
+    }).catch(console.error); // ошибка не должна ломать регистрацию
   }
 
   return NextResponse.json(user);

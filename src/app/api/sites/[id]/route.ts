@@ -11,7 +11,7 @@ function escapeHtml(text: string): string {
     .replace(/'/g, "&#039;");
 }
 
-// ─── Стили (оставлены те же premium и free, что у тебя в generate) ───
+// ─── Стили (актуальные версии premium и free) ─────────────────
 const STYLES: Record<string, string> = {
   premium: `
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -72,34 +72,65 @@ const STYLES: Record<string, string> = {
   .arrow-prev { left:-20px; }
   .arrow-next { right:-20px; }
 
+  /* Галерея (слайдер) */
+  .gallery { padding-bottom:80px; background:#fff; }
+  .gallery-header { text-align:center; margin-bottom:60px; }
+  .gallery-subtitle { color:#b07a8c; font-size:0.9rem; text-transform:uppercase; letter-spacing:2px; }
+  .gallery-decor-line { width:60px; height:3px; background:linear-gradient(135deg, #f8c3d3, #e4b5c6); margin:0 auto; border-radius:2px; }
+  .gallery-slider-wrapper { position:relative; max-width:1200px; margin:0 auto; }
+  .gallery-slider { display:flex; overflow-x:auto; gap:24px; padding:0 20px 20px; scroll-snap-type:x mandatory; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
+  .gallery-slider::-webkit-scrollbar { display:none; }
+  .gallery-card { flex:0 0 300px; scroll-snap-align:start; border-radius:20px; overflow:hidden; box-shadow:0 4px 16px rgba(176,122,140,0.15); transition: transform 0.3s; aspect-ratio: 4/3; }
+  .gallery-card:hover { transform: scale(1.02); }
+  .gallery-arrow { position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; background:white; border:1px solid rgba(176,122,140,0.3); color:#b07a8c; font-size:1.5rem; cursor:pointer; z-index:5; transition:all 0.3s; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+  .gallery-arrow:hover { background:#fdf2f4; box-shadow:0 6px 16px rgba(176,122,140,0.2); }
+  .gallery-arrow-prev { left:-20px; }
+  .gallery-arrow-next { right:-20px; }
+
+  /* Отзывы – плавное переключение */
   .reviews { padding:80px 0; background:#fdf2f4; }
   .reviews-header { text-align:center; margin-bottom:60px; }
   .reviews-subtitle { color:#b07a8c; font-size:0.9rem; text-transform:uppercase; letter-spacing:2px; }
   .reviews-title { font-size:2.5rem; font-weight:700; color:#4a3f47; margin-bottom:20px; }
   .reviews-decor-line { width:60px; height:3px; background:linear-gradient(135deg, #f8c3d3, #e4b5c6); margin:0 auto; border-radius:2px; }
-  .slider-wrapper { max-width:700px; margin:0 auto; }
+  .slider-wrapper { max-width:700px; margin:0 auto; position:relative; }
   input[name="slider"] { display:none; }
-  .slides-container { display:flex; flex-direction:column; }
-  .review-slide { display:none; text-align:center; padding:0 20px; margin-bottom:24px; }
+  .slides-container { position:relative; min-height:250px; }
+  .review-slide {
+    position:absolute; top:0; left:0; width:100%;
+    opacity:0;
+    transition: opacity 0.6s ease;
+    text-align:center; padding:0 20px;
+    pointer-events:none;
+  }
   #slide-1:checked ~ .slides-container .slide-content-1,
   #slide-2:checked ~ .slides-container .slide-content-2,
-  #slide-3:checked ~ .slides-container .slide-content-3 { display:block; }
+  #slide-3:checked ~ .slides-container .slide-content-3 {
+    opacity:1;
+    pointer-events:auto;
+  }
   .review-stars-box { margin-bottom:20px; }
   .review-star { color:#b07a8c; font-size:1.2rem; }
-  .review-text { font-style:italic; color:#5c4b56; line-height:1.7; font-size:1.1rem; background:white; padding:24px; border-radius:16px; box-shadow:0 4px 12px rgba(176,122,140,0.08); }
+  .review-text {
+    font-style:italic; color:#5c4b56; line-height:1.7; font-size:1.1rem;
+    background:white; padding:24px; border-radius:16px; box-shadow:0 4px 12px rgba(176,122,140,0.08);
+  }
   .review-author { color:#b07a8c; font-weight:600; margin-top:16px; display:block; font-size:1.1rem; }
-  .slider-dots { display:flex; justify-content:center; gap:12px; margin-top:10px; }
-  .dot-label { width:12px; height:12px; border-radius:50%; background:rgba(176,122,140,0.3); cursor:pointer; transition:background 0.3s; }
+  .slider-dots { display:flex; justify-content:center; gap:12px; margin-top:20px; }
+  .dot-label {
+    width:12px; height:12px; border-radius:50%; background:rgba(176,122,140,0.3);
+    cursor:pointer; transition:background 0.3s;
+  }
   #slide-1:checked ~ .slider-dots .dot-label:nth-child(1),
   #slide-2:checked ~ .slider-dots .dot-label:nth-child(2),
   #slide-3:checked ~ .slider-dots .dot-label:nth-child(3) { background:#b07a8c; }
 
-  .contacts { background:#fff; padding:60px 0; }
+  .contacts { background:#fff; padding-top:60px; }
   .contacts-wrapper { display:flex; gap:60px; max-width:1200px; margin:0 auto; padding:0 20px; flex-wrap:wrap; }
   .contacts-info { flex:1; }
   .contacts-subtitle { color:#b07a8c; font-size:0.9rem; text-transform:uppercase; letter-spacing:2px; }
   .contacts-title { font-size:2rem; font-weight:700; color:#4a3f47; margin:10px 0 20px; }
-  .contacts-decor-line { width:60px; height:3px; background:linear-gradient(135deg, #f8c3d3, #e4b5c6); margin-bottom:30px; border-radius:2px; }
+  .contacts-decor-line { width:60px; height:3px; background:linear-gradient(135deg, #f8c3d3, #e4b5c6); margin-bottom:30px; border-radius:2px; display: inline-block; }
   .contacts-item { margin-bottom:20px; }
   .item-label { color:#b07a8c; font-weight:600; display:block; margin-bottom:4px; }
   .item-value { color:#5c4b56; }
@@ -126,11 +157,14 @@ const STYLES: Record<string, string> = {
     .frame-main, .frame-sub { width:100%; height:250px; transform:none; }
     .services-carousel { gap:16px; }
     .service-card { flex:0 0 220px; }
+    .gallery-card { flex:0 0 240px; }
     .contacts-wrapper { flex-direction:column; align-items:center; padding:0 10px; }
     .contacts-info { text-align:center; }
     .contacts-action-card { min-width:0; padding:20px 15px; width:100%; }
-    .slider-arrow { display:none; }
+    .slider-arrow, .gallery-arrow { display:none; }
     .review-text { font-size:1rem; padding:16px; }
+    .slides-container { min-height: 400px; position: relative; }
+    .slider-dots { position: absolute; bottom: -60px; left: 0; right: 0; display: flex; justify-content: center; gap: 12px; margin-top: 0; }
   }
   @media (max-width:480px) {
     .hero-main-title { font-size:2rem; }
@@ -193,7 +227,7 @@ const STYLES: Record<string, string> = {
   .contacts-wrapper { display:flex; gap:40px; max-width:900px; margin:0 auto; padding:0 20px; flex-wrap:wrap; justify-content:center; }
   .contacts-info { flex:1; min-width:250px; text-align:left; }
   .contacts-title { font-size:2rem; font-weight:700; color:#4a3f47; margin:10px 0 20px; }
-  .contacts-decor-line { width:50px; height:3px; background:linear-gradient(135deg, #f8c3d3, #e4b5c6); margin-bottom:30px; border-radius:2px; }
+  .contacts-decor-line { width:50px; height:3px; background:linear-gradient(135deg, #f8c3d3, #e4b5c6); margin-bottom:30px; border-radius:2px; display: inline-block; }
   .contacts-item { margin-bottom:20px; }
   .item-label { color:#b07a8c; font-weight:600; display:block; margin-bottom:4px; }
   .item-value { color:#5c4b56; }
@@ -270,6 +304,7 @@ export async function PUT(
       address,
       gallery,
       heroSlider,
+      clientEmail, // ← новое поле
     } = body;
 
     const site = await prisma.site.findUnique({ where: { id } });
@@ -282,6 +317,7 @@ export async function PUT(
       where: { firebaseUid: userId },
     });
     const isPro = user?.plan === "PRO";
+    const siteSlug = site.slug; // slug текущего сайта
 
     // Услуги
     const servicesRaw = (skills || "")
@@ -306,6 +342,12 @@ export async function PUT(
       const parts = line.split("|").map((p) => p.trim());
       return { author: parts[0] || "Гость", text: parts[1] || "" };
     });
+
+    // Галерея
+    const galleryImages = (gallery || "")
+      .split("|")
+      .map((u: string) => u.trim())
+      .filter(Boolean);
 
     // Hero-слайдер
     const heroSliderRaw = heroSlider || "";
@@ -420,6 +462,36 @@ export async function PUT(
       </div>
     </section>`;
 
+    // Галерея (слайдер, только для PRO)
+    const galleryHtml =
+      isPro && galleryImages.length > 0
+        ? `
+    <section class="gallery fade-in-up" id="gallery">
+      <div class="container" style="max-width:1200px; margin:0 auto; padding:0 20px;">
+        <div class="gallery-header">
+          <span class="gallery-subtitle">Портфолио</span>
+          <h2 style="font-size:2.5rem; font-weight:700; color:#4a3f47; margin-bottom:20px;">Наши работы</h2>
+          <div class="gallery-decor-line"></div>
+        </div>
+        <div class="gallery-slider-wrapper">
+          <button class="gallery-arrow gallery-arrow-prev" onclick="this.nextElementSibling.scrollBy({left:-320,behavior:'smooth'})">←</button>
+          <div class="gallery-slider">
+            ${galleryImages
+              .map(
+                (img: any) => `
+              <div class="gallery-card">
+                <img src="${img}" alt="Работа" style="width:100%; height:100%; object-fit:cover; display:block;" />
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+          <button class="gallery-arrow gallery-arrow-next" onclick="this.previousElementSibling.scrollBy({left:320,behavior:'smooth'})">→</button>
+        </div>
+      </div>
+    </section>`
+        : "";
+
     // Отзывы
     const reviewsHtml = isPro
       ? `
@@ -496,7 +568,8 @@ export async function PUT(
           <div class="contacts-action-card">
             <h3 class="action-card-title">Записаться онлайн</h3>
             <p class="action-card-desc">Выберите удобное время. Мы подтвердим запись в течение 5 минут.</p>
-            <form id="bookingForm" action="https://formspree.io/f/xlgyvvbz" method="POST" style="display:flex;flex-direction:column;gap:15px;margin-top:20px;">
+            <form id="bookingForm" action="/api/contact" method="POST" style="display:flex;flex-direction:column;gap:15px;margin-top:20px;">
+              <input type="hidden" name="slug" value="${escapeHtml(siteSlug)}" />
               <input type="text" name="name" placeholder="Ваше имя" required style="background:rgba(255,255,255,0.08);border:1px solid #c9a96e;color:#000;padding:12px 14px;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:0.95rem;outline:none;">
               <input type="tel" name="phone" placeholder="Телефон" required style="background:rgba(255,255,255,0.08);border:1px solid #c9a96e;color:#000;padding:12px 14px;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:0.95rem;outline:none;">
               <select name="service" required style="background:rgba(255,255,255,0.08);border:1px solid #c9a96e;color:#000;padding:12px 14px;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:0.95rem;outline:none;appearance:none;cursor:pointer;">
@@ -548,6 +621,7 @@ export async function PUT(
 <body>
   ${heroHtml}
   ${servicesHtml}
+  ${galleryHtml}
   ${reviewsHtml}
   ${contactsHtml}
   <script>
@@ -589,6 +663,7 @@ export async function PUT(
         html,
         heroSlider: heroSlider || "",
         style: styleKey,
+        clientEmail: clientEmail || null, // ← сохраняем email владельца
       },
     });
 
@@ -604,7 +679,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params; // <-- исправлено
+  const { id } = await params;
   const userId = req.nextUrl.searchParams.get("userId") || "";
 
   const site = await prisma.site.findUnique({ where: { id } });

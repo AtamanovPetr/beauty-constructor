@@ -317,7 +317,6 @@ export async function POST(request: Request) {
         userLimit = user.sitesLimit ?? 1;
       }
 
-      // Временная заглушка для тестирования тарифов (можно удалить перед продакшеном)
       const testPlan = request.headers.get("x-test-plan");
       if (testPlan === "pro") {
         isPro = true;
@@ -346,6 +345,9 @@ export async function POST(request: Request) {
 
     const styleKey = isPro ? "premium" : "free";
     const customStyles = STYLES[styleKey] || STYLES.free;
+
+    // ─── Генерируем slug заранее, чтобы использовать в форме ───
+    let slug = generateSlug(payload.name);
 
     // ─── Услуги ─────────────────────────────────────────
     const servicesRaw = (payload.skills || "")
@@ -598,7 +600,8 @@ export async function POST(request: Request) {
           <div class="contacts-action-card">
             <h3 class="action-card-title">Записаться онлайн</h3>
             <p class="action-card-desc">Выберите удобное время. Мы подтвердим запись в течение 5 минут.</p>
-            <form id="bookingForm" action="https://formspree.io/f/xlgyvvbz" method="POST" style="display:flex;flex-direction:column;gap:15px;margin-top:20px;">
+            <form id="bookingForm" action="/api/contact" method="POST" style="display:flex;flex-direction:column;gap:15px;margin-top:20px;">
+              <input type="hidden" name="slug" value="${escapeHtml(slug)}" />
               <input type="text" name="name" placeholder="Ваше имя" required style="background:rgba(255,255,255,0.08);border:1px solid #c9a96e;color:#000;padding:12px 14px;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:0.95rem;outline:none;">
               <input type="tel" name="phone" placeholder="Телефон" required style="background:rgba(255,255,255,0.08);border:1px solid #c9a96e;color:#000;padding:12px 14px;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:0.95rem;outline:none;">
               <select name="service" required style="background:rgba(255,255,255,0.08);border:1px solid #c9a96e;color:#000;padding:12px 14px;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:0.95rem;outline:none;appearance:none;cursor:pointer;">
@@ -677,8 +680,6 @@ export async function POST(request: Request) {
 </html>`;
 
     // ─── Сохранение в БД ────────────────────────────────
-    let slug = generateSlug(payload.name);
-
     try {
       await prisma.site.create({
         data: {
@@ -695,6 +696,7 @@ export async function POST(request: Request) {
           userId: payload.userId,
           slug,
           style: styleKey,
+          clientEmail: payload.clientEmail || null,
         },
       });
       return NextResponse.json({ html, slug });
@@ -716,6 +718,7 @@ export async function POST(request: Request) {
             userId: payload.userId,
             slug,
             style: styleKey,
+            clientEmail: payload.clientEmail || null,
           },
         });
         return NextResponse.json({ html, slug });

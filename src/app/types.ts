@@ -20,4 +20,5 @@ export interface FormData {
   metaTitle: string;
   metaDescription: string;
   heroSlider?: string; // <-- обязательно
+  clientEmail?: string;
 }

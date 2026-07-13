@@ -78,6 +78,7 @@ const DEFAULT_FORM: FormData = {
   metaDescription: "",
   heroSlider:
     "/defaults/hero1.webp|" + "/defaults/hero2.webp|" + "/defaults/hero3.webp",
+  clientEmail: "",
 };
 
 function loadDraft(): FormData {
@@ -725,6 +726,16 @@ export default function SiteForm({ userId, onGenerate }: Props) {
             <input
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label>Email для получения заявок</label>
+            <input
+              value={form.clientEmail || ""}
+              onChange={(e) =>
+                setForm({ ...form, clientEmail: e.target.value })
+              }
+              placeholder="email@example.com"
             />
           </div>
         </fieldset>

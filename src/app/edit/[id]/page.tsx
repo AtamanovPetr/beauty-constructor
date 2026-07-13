@@ -117,6 +117,7 @@ export default function EditPage() {
           metaTitle: site.metaTitle || "",
           metaDescription: site.metaDescription || "",
           heroSlider,
+          clientEmail: "",
         };
         setForm(freshForm);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(freshForm));
@@ -749,6 +750,16 @@ export default function EditPage() {
             <input
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label>Email для получения заявок</label>
+            <input
+              value={form.clientEmail || ""}
+              onChange={(e) =>
+                setForm({ ...form, clientEmail: e.target.value })
+              }
+              placeholder="email@example.com"
             />
           </div>
         </fieldset>
